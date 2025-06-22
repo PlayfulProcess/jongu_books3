@@ -1318,7 +1318,7 @@
             </div>
             <div class="field-group" style="margin-top: 1rem;">
                 <label class="field-label">Visual Description for AI Image</label>
-                <textarea class="field-input field-textarea" placeholder="e.g., A bunny looking at the moon from a hill." id="pageImagePrompt${pageCount}"></textarea>
+                <textarea class="field-input field-textarea" placeholder="e.g., A bunny looking at the moon from a hill." id="pageImagePrompt${pageCount}">${page && page.illustration_prompt ? page.illustration_prompt : ''}</textarea>
             </div>
             <div class="button-group">
                 <button class="button" onclick="generatePageImage(this)">🎨 Use AI to Create Image</button>
@@ -1560,12 +1560,63 @@
 
     async function generatePages(event) {
       event.preventDefault();
-      // Placeholder for AI page generation
-      showToast("AI page generation for all pages coming soon!");
-      document.getElementById('pages-section').scrollIntoView({ behavior: 'smooth' });
-      updateProgress('pages');
-      document.querySelector('.nav-item.active').classList.remove('active');
-      document.querySelector('.nav-item[href="#pages-section"]').classList.add('active');
+      const button = event.currentTarget;
+      button.disabled = true;
+      button.textContent = '🤖 Creating all pages...';
+
+      try {
+        const storyDetails = {
+          story_title: document.getElementById('storyTitle').value,
+          core_message: document.getElementById('coreMessage').value,
+          total_pages: parseInt(document.getElementById('totalPages').value) || 12,
+          age: document.getElementById('targetAge').value,
+          tone: document.getElementById('storyTone').value
+        };
+
+        if (!storyDetails.story_title || !storyDetails.core_message) {
+          showToast('Please provide a title and core message in Step 1 first.');
+          return;
+        }
+
+        const response = await fetch('/api/gpt/generate_all_pages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(storyDetails)
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          const pagesContainer = document.getElementById('pagesContainer');
+          pagesContainer.innerHTML = ''; // Clear existing pages
+          pageCount = 0; // Reset page count
+          
+          result.data.forEach(page => {
+            addPage({
+              page_number: page.page_number,
+              text: page.text,
+              illustration_prompt: page.illustration_prompt
+            });
+          });
+          
+          showToast(`Generated ${result.data.length} pages successfully!`);
+          
+          // Navigate to the section
+          document.getElementById('pages-section').scrollIntoView({ behavior: 'smooth' });
+          updateProgress('pages');
+          document.querySelector('.nav-item.active').classList.remove('active');
+          document.querySelector('.nav-item[href="#pages-section"]').classList.add('active');
+
+        } else {
+          throw new Error(result.detail || 'Failed to generate pages.');
+        }
+      } catch (error) {
+        console.error('Error generating pages:', error);
+        showToast('Error: Could not generate pages.');
+      } finally {
+        button.disabled = false;
+        button.textContent = '🤖 Use AI to Create All Pages';
+      }
     }
 
     // --- AI Chat ---

@@ -88,6 +88,13 @@ class PageTextGenerationRequest(BaseModel):
     total_pages: Optional[int]
     previous_text: Optional[str] = None
 
+class AllPagesGenerationRequest(BaseModel):
+    story_title: str
+    core_message: str
+    total_pages: Optional[int] = 12
+    age: Optional[str] = "4-6 years"
+    tone: Optional[str] = "Gentle & Nurturing"
+
 # In-memory storage (replace with PostgreSQL later)
 stories = {}
 # Create a dummy story for development
@@ -198,6 +205,20 @@ async def gpt_generate_characters(req: StoryGenerationRequest):
         )
         
         characters_json = response.choices[0].message.content
+        print(f"OpenAI response: {characters_json}")  # Debug log
+        
+        # Clean the response and try to parse JSON
+        characters_json = characters_json.strip()
+        if not characters_json:
+            raise Exception("OpenAI returned an empty response")
+            
+        # Try to extract JSON if it's wrapped in markdown
+        if characters_json.startswith("```json"):
+            characters_json = characters_json.split("```json")[1]
+        if characters_json.endswith("```"):
+            characters_json = characters_json.rsplit("```", 1)[0]
+        characters_json = characters_json.strip()
+        
         characters = json.loads(characters_json)
 
         return {
@@ -257,6 +278,79 @@ async def gpt_generate_page_text(req: PageTextGenerationRequest):
         print(f"Error calling OpenAI for page text: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate page text: {e}")
 
+@app.post("/api/gpt/generate_all_pages")
+async def gpt_generate_all_pages(req: AllPagesGenerationRequest):
+    """Generate all pages for a story using AI"""
+    if not openai.api_key:
+        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+
+    try:
+        prompt = f"""
+        You are a gentle and creative author of children's books.
+        Based on the following story details, create a complete story with {req.total_pages} pages.
+        Each page should have engaging text appropriate for {req.age} children with a {req.tone} tone.
+
+        Story Title: "{req.story_title}"
+        Core Message: "{req.core_message}"
+        Target Age: {req.age}
+        Tone: {req.tone}
+        Number of Pages: {req.total_pages}
+
+        Generate a JSON array with {req.total_pages} pages. Each page should have:
+        - page_number: the page number (1, 2, 3, etc.)
+        - text: 2-4 sentences of engaging story text
+        - illustration_prompt: a brief description for creating an illustration
+
+        JSON output format:
+        [
+            {{
+                "page_number": 1,
+                "text": "Once upon a time...",
+                "illustration_prompt": "A cozy scene showing..."
+            }},
+            {{
+                "page_number": 2,
+                "text": "The next day...",
+                "illustration_prompt": "A bright morning scene..."
+            }}
+        ]
+        """
+
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a creative assistant for writing children's books."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.8,
+        )
+        
+        pages_json = response.choices[0].message.content
+        print(f"OpenAI response for pages: {pages_json}")  # Debug log
+        
+        # Clean the response and try to parse JSON
+        pages_json = pages_json.strip()
+        if not pages_json:
+            raise Exception("OpenAI returned an empty response")
+            
+        # Try to extract JSON if it's wrapped in markdown
+        if pages_json.startswith("```json"):
+            pages_json = pages_json.split("```json")[1]
+        if pages_json.endswith("```"):
+            pages_json = pages_json.rsplit("```", 1)[0]
+        pages_json = pages_json.strip()
+        
+        pages = json.loads(pages_json)
+
+        return {
+            "success": True,
+            "data": pages
+        }
+
+    except Exception as e:
+        print(f"Error calling OpenAI for all pages: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate all pages: {e}")
+
 @app.post("/api/gpt/generate_story_foundation")
 async def gpt_generate_story_foundation(req: StoryFoundationRequest):
     """Generate or complete a story foundation using AI"""
@@ -307,6 +401,20 @@ async def gpt_generate_story_foundation(req: StoryFoundationRequest):
         )
 
         foundation_json = response.choices[0].message.content
+        print(f"OpenAI response for foundation: {foundation_json}")  # Debug log
+        
+        # Clean the response and try to parse JSON
+        foundation_json = foundation_json.strip()
+        if not foundation_json:
+            raise Exception("OpenAI returned an empty response")
+            
+        # Try to extract JSON if it's wrapped in markdown
+        if foundation_json.startswith("```json"):
+            foundation_json = foundation_json.split("```json")[1]
+        if foundation_json.endswith("```"):
+            foundation_json = foundation_json.rsplit("```", 1)[0]
+        foundation_json = foundation_json.strip()
+        
         foundation = json.loads(foundation_json)
 
         return {
