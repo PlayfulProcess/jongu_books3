@@ -59,6 +59,9 @@ class StoryFoundationRequest(BaseModel):
     age: Optional[str] = ""
     tone: Optional[str] = ""
 
+class ImageGenerationRequest(BaseModel):
+    prompt: str
+
 class ChatRequest(BaseModel):
     message: str
     history: List[dict]
@@ -259,6 +262,29 @@ async def gpt_generate_story_foundation(req: StoryFoundationRequest):
     except Exception as e:
         print(f"Error calling OpenAI: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate story foundation: {e}")
+
+@app.post("/api/gpt/generate_image")
+async def gpt_generate_image(req: ImageGenerationRequest):
+    """Generate an image using DALL-E"""
+    if not openai.api_key:
+        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+
+    try:
+        response = openai.images.generate(
+            model="dall-e-3",
+            prompt=f"A cute, simple, and colorful children's book illustration of: {req.prompt}. The style should be gentle and heartwarming, suitable for young children, with soft colors and clean lines.",
+            n=1,
+            size="1024x1024",
+            response_format="url"
+        )
+        image_url = response.data[0].url
+        return {
+            "success": True,
+            "data": {"url": image_url}
+        }
+    except Exception as e:
+        print(f"Error calling DALL-E: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate image: {e}")
 
 @app.post("/api/ai/chat")
 async def ai_chat(req: ChatRequest):

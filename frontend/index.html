@@ -753,6 +753,28 @@
       align-self: flex-start;
     }
 
+    .input-with-button {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .input-with-button .field-input {
+      flex-grow: 1;
+    }
+    .input-with-button .button {
+      flex-shrink: 0;
+      padding: 0.5rem 1rem;
+    }
+
+    .image-preview {
+      margin-top: 1rem;
+    }
+    .image-preview img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
     .ai-chat-input-container {
       display: flex;
       padding: 1rem;
@@ -932,11 +954,8 @@
         </div>
       </div>
       <div class="button-group">
-        <button class="button button-secondary" onclick="completeStoryFoundation(event)">
+        <button class="button" onclick="completeStoryFoundation(event)">
           🤖 Use AI to Complete Story Foundation
-        </button>
-        <button class="button" onclick="document.getElementById('characters-section').scrollIntoView({ behavior: 'smooth' }); setActiveSection(event, 'characters')">
-          Next: Create Characters ➡️
         </button>
       </div>
     </section>
@@ -968,8 +987,16 @@
               <input type="text" list="character-types" class="field-input" id="characterType1" placeholder="Select or type a custom type">
             </div>
             <div class="field-group">
+              <label class="field-label">Visual Description for AI</label>
+              <textarea class="field-input field-textarea" placeholder="e.g., A small, fluffy bunny with long, floppy ears and a tiny pink nose, wearing a blue waistcoat." id="characterVisualDescription1"></textarea>
+            </div>
+            <div class="field-group">
               <label class="field-label">Visual Reference</label>
-              <input type="file" class="field-input" accept="image/*" id="characterImage1">
+              <div class="input-with-button">
+                <input type="file" class="field-input" accept="image/*" id="characterImage1" onchange="previewManualImage(this)">
+                <button class="button button-secondary" onclick="generateCharacterImage(this)">🎨 Use AI to Create Image</button>
+              </div>
+              <div class="image-preview" id="imagePreview1"></div>
             </div>
           </div>
         </div>
@@ -1179,8 +1206,16 @@
                 <input type="text" list="character-types" class="field-input" id="characterType${characterCount}" placeholder="Select or type a custom type" value="${character ? character.type : ''}">
             </div>
             <div class="field-group">
+                <label class="field-label">Visual Description for AI</label>
+                <textarea class="field-input field-textarea" placeholder="e.g., A small, fluffy bunny with long, floppy ears and a tiny pink nose, wearing a blue waistcoat." id="characterVisualDescription${characterCount}"></textarea>
+            </div>
+            <div class="field-group">
                 <label class="field-label">Visual Reference</label>
-                <input type="file" class="field-input" accept="image/*" id="characterImage${characterCount}">
+                <div class="input-with-button">
+                  <input type="file" class="field-input" accept="image/*" id="characterImage${characterCount}" onchange="previewManualImage(this)">
+                  <button class="button button-secondary" onclick="generateCharacterImage(this)">🎨 Use AI to Create Image</button>
+                </div>
+                <div class="image-preview" id="imagePreview${characterCount}"></div>
             </div>
         </div>
         <div class="button-group">
@@ -1197,6 +1232,57 @@
       if (confirm('Are you sure you want to remove this character?')) {
         button.closest('.character-card').remove();
         showToast('Character removed');
+      }
+    }
+
+    function previewManualImage(input) {
+      const card = input.closest('.character-card');
+      const previewContainer = card.querySelector('.image-preview');
+      
+      if (input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+              previewContainer.innerHTML = `<img src="${e.target.result}" alt="Manually uploaded character image">`;
+          }
+          reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    async function generateCharacterImage(button) {
+      const card = button.closest('.character-card');
+      const visualDescriptionInput = card.querySelector('textarea[id^="characterVisualDescription"]');
+      const prompt = visualDescriptionInput.value;
+
+      if (!prompt) {
+          showToast('Please provide a visual description for the AI first.');
+          return;
+      }
+
+      button.disabled = true;
+      button.textContent = '🎨 Creating...';
+
+      try {
+          const response = await fetch('/api/gpt/generate_image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt: prompt })
+          });
+          const result = await response.json();
+
+          if (result.success && result.data.url) {
+              const previewContainer = card.querySelector('.image-preview');
+              previewContainer.innerHTML = `<img src="${result.data.url}" alt="AI-generated character image">`;
+              showToast('AI image created successfully!');
+          } else {
+              throw new Error(result.detail || 'Failed to generate image.');
+          }
+
+      } catch (error) {
+          console.error('Error generating image:', error);
+          showToast('Error: Could not generate the image.');
+      } finally {
+          button.disabled = false;
+          button.textContent = '🎨 Use AI to Create Image';
       }
     }
 
