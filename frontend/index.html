@@ -1265,41 +1265,41 @@
     }
 
     async function generateCharacterImage(button) {
-        const card = button.closest('.character-card');
-        const visualDescriptionInput = card.querySelector('textarea[id^="characterVisualDescription"]');
-        const prompt = visualDescriptionInput.value;
+      const card = button.closest('.character-card');
+      const visualDescriptionInput = card.querySelector('textarea[id^="characterVisualDescription"]');
+      const prompt = visualDescriptionInput.value;
 
-        if (!prompt) {
-            showToast('Please provide a visual description for the AI first.');
-            return;
-        }
+      if (!prompt) {
+          showToast('Please provide a visual description for the AI first.');
+          return;
+      }
 
-        button.disabled = true;
-        button.textContent = '🎨 Creating...';
+      button.disabled = true;
+      button.textContent = '🎨 Creating...';
 
-        try {
-            const response = await fetch('/api/gpt/generate_image', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: prompt })
-            });
-            const result = await response.json();
+      try {
+          const response = await fetch('/api/gpt/generate_image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt: prompt })
+          });
+          const result = await response.json();
 
-            if (result.success && result.data.url) {
-                const previewContainer = card.querySelector('.image-preview');
-                previewContainer.innerHTML = `<img src="${result.data.url}" alt="AI-generated character image">`;
-                showToast('AI image created successfully!');
-            } else {
-                throw new Error(result.detail || 'Failed to generate image.');
-            }
+          if (result.success && result.data.url) {
+              const previewContainer = card.querySelector('.image-preview');
+              previewContainer.innerHTML = `<img src="${result.data.url}" alt="AI-generated character image">`;
+              showToast('AI image created successfully!');
+          } else {
+              throw new Error(result.detail || 'Failed to generate image.');
+          }
 
-        } catch (error) {
-            console.error('Error generating image:', error);
-            showToast('Error: Could not generate the image.');
-        } finally {
-            button.disabled = false;
-            button.textContent = '🎨 Use AI to Create Image';
-        }
+      } catch (error) {
+          console.error('Error generating image:', error);
+          showToast('Error: Could not generate the image.');
+      } finally {
+          button.disabled = false;
+          button.textContent = '🎨 Use AI to Create Image';
+      }
     }
 
     let pageCount = 0;
