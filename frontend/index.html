@@ -683,9 +683,6 @@
 
     <div class="nav-section">
       <div class="nav-title">Tools</div>
-      <a href="#" class="nav-item" onclick="saveWork(event)">
-        <span>💾</span> Save Work
-      </a>
       <a href="#" class="nav-item" onclick="startOver(event)">
         <span>🔄</span> Start Over
       </a>
@@ -911,18 +908,11 @@
   </div>
 
   <script>
-    // Global state
-    let storyData = {
-      title: '',
-      coreMessage: '',
-      outline: '',
-      totalWords: '',
-      totalPages: '',
-      tone: '',
-      age: '',
-      characters: [],
-      pages: []
-    };
+    // --- Lifecycle ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize with empty state
+      updateProgress('story');
+    });
 
     // --- Navigation and UI functions ---
     function setActiveSection(event, section) {
@@ -949,56 +939,11 @@
       }
     }
 
-    function saveWork(event) {
-      event.preventDefault();
-
-      // --- Gather Story Foundation ---
-      storyData.title = document.getElementById('storyTitle').value;
-      storyData.coreMessage = document.getElementById('coreMessage').value;
-      storyData.outline = document.getElementById('storyOutline').value;
-      storyData.totalWords = document.getElementById('totalWords').value;
-      storyData.totalPages = document.getElementById('totalPages').value;
-      storyData.tone = document.getElementById('storyTone').value;
-      storyData.age = document.getElementById('targetAge').value;
-
-      // --- Gather Characters ---
-      storyData.characters = [];
-      const characterCards = document.querySelectorAll('#charactersContainer .character-card');
-      characterCards.forEach((card, index) => {
-        const id = index + 1; // This might become incorrect if characters are removed.
-        const name = card.querySelector(`input[id^="characterName"]`)?.value || '';
-        const personality = card.querySelector(`textarea[id^="characterPersonality"]`)?.value || '';
-        const type = card.querySelector(`input[id^="characterType"]`)?.value || '';
-        
-        if (name) { // Only save characters that have a name
-          storyData.characters.push({ id: `char${id}`, name, personality, type });
-        }
-      });
-
-      // --- Gather Pages ---
-      storyData.pages = [];
-      const pageContainers = document.querySelectorAll('#pagesContainer .page-container');
-      pageContainers.forEach((page, index) => {
-        const id = index + 1; // This might become incorrect if pages are removed.
-        const text = page.querySelector(`textarea[id^="pageText"]`)?.value || '';
-
-        if (text) { // Only save pages that have text
-          storyData.pages.push({ id: `page${id}`, text });
-        }
-      });
-      
-      console.log('Saving all work...', storyData);
-      showToast('Your entire project has been saved!');
-      // Here you would typically send `storyData` to a backend API.
-    }
-
     function startOver(event) {
       event.preventDefault();
       if (confirm('Are you sure you want to start over? This will erase all your progress.')) {
-        // Reset data
-        storyData = { characters: [], pages: [] };
-        characterCount = 1;
-        pageCount = 1;
+        characterCount = 0;
+        pageCount = 0;
 
         // Reset Story Foundation fields
         document.getElementById('storyTitle').value = '';
@@ -1011,43 +956,13 @@
 
         // Reset Characters section to its initial state
         const charactersContainer = document.getElementById('charactersContainer');
-        charactersContainer.innerHTML = `
-          <div class="character-card">
-            <div class="field-group">
-              <label class="field-label">Character Name</label>
-              <input type="text" class="field-input" placeholder="e.g., Maya the Mindful Elephant" id="characterName1">
-            </div>
-            <div class="field-group">
-              <label class="field-label">Character Purpose & Personality</label>
-              <textarea class="field-input field-textarea" placeholder="What makes this character special? What wisdom do they carry?" id="characterPersonality1"></textarea>
-            </div>
-            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-              <div class="field-group">
-                <label class="field-label">Character Type</label>
-                <input type="text" list="character-types" class="field-input" id="characterType1" placeholder="Select or type a custom type">
-              </div>
-              <div class="field-group">
-                <label class="field-label">Visual Reference</label>
-                <input type="file" class="field-input" accept="image/*" id="characterImage1">
-              </div>
-            </div>
-          </div>
-        `;
+        charactersContainer.innerHTML = '';
+        addCharacter(); // Add a single blank card
 
         // Reset Pages section to its initial state
         const pagesContainer = document.getElementById('pagesContainer');
-        pagesContainer.innerHTML = `
-          <div class="page-container" style="position: relative;">
-            <span class="page-number">1</span>
-            <div class="image-area" onclick="uploadPageImage(this)">
-              <span class="image-placeholder-icon">🎨</span>
-              Click to upload image
-            </div>
-            <div class="text-area">
-              <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText1"></textarea>
-            </div>
-          </div>
-        `;
+        pagesContainer.innerHTML = '';
+        addPage(); // Add a single blank card
 
         // Reset navigation to the first step
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -1092,8 +1007,8 @@
     }
 
     // --- Card management ---
-    let characterCount = 1;
-    function addCharacter() {
+    let characterCount = 0;
+    function addCharacter(character = null) {
       characterCount++;
       const container = document.getElementById('charactersContainer');
       const newCard = document.createElement('div');
@@ -1101,16 +1016,16 @@
       newCard.innerHTML = `
         <div class="field-group">
             <label class="field-label">Character Name</label>
-            <input type="text" class="field-input" placeholder="e.g., Leo the Brave Lion" id="characterName${characterCount}">
+            <input type="text" class="field-input" placeholder="e.g., Leo the Brave Lion" id="characterName${characterCount}" value="${character ? character.name : ''}">
         </div>
         <div class="field-group">
             <label class="field-label">Character Purpose & Personality</label>
-            <textarea class="field-input field-textarea" placeholder="What makes this character special?" id="characterPersonality${characterCount}"></textarea>
+            <textarea class="field-input field-textarea" placeholder="What makes this character special?" id="characterPersonality${characterCount}">${character ? character.personality : ''}</textarea>
         </div>
         <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="field-group">
                 <label class="field-label">Character Type</label>
-                <input type="text" list="character-types" class="field-input" id="characterType${characterCount}" placeholder="Select or type a custom type">
+                <input type="text" list="character-types" class="field-input" id="characterType${characterCount}" placeholder="Select or type a custom type" value="${character ? character.type : ''}">
             </div>
             <div class="field-group">
                 <label class="field-label">Visual Reference</label>
@@ -1122,7 +1037,9 @@
         </div>
       `;
       container.appendChild(newCard);
-      showToast('New character card added!');
+      if (!character) {
+        showToast('New character card added!');
+      }
     }
 
     function removeCharacter(button) {
@@ -1132,8 +1049,8 @@
       }
     }
 
-    let pageCount = 1;
-    function addPage() {
+    let pageCount = 0;
+    function addPage(page = null) {
       pageCount++;
       const container = document.getElementById('pagesContainer');
       const newPage = document.createElement('div');
@@ -1146,14 +1063,16 @@
           Click to upload image
         </div>
         <div class="text-area">
-          <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText${pageCount}"></textarea>
+          <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText${pageCount}">${page ? page.text : ''}</textarea>
           <div class="button-group" style="margin-top: 1rem;">
             <button class="button button-secondary" onclick="removePage(this)">🗑️ Remove Page</button>
           </div>
         </div>
       `;
       container.appendChild(newPage);
-      showToast('New page added!');
+      if (!page) {
+        showToast('New page added!');
+      }
     }
 
     function removePage(button) {
@@ -1178,6 +1097,91 @@
         }
       };
       input.click();
+    }
+
+    function previewBook() {
+      // Gather all the data from the form first
+      const story = {
+        title: document.getElementById('storyTitle').value,
+        characters: [],
+        pages: []
+      };
+
+      document.querySelectorAll('#charactersContainer .character-card').forEach(card => {
+        const name = card.querySelector(`input[id^="characterName"]`).value;
+        if (name) {
+          story.characters.push({ name: name });
+        }
+      });
+
+      document.querySelectorAll('#pagesContainer .page-container').forEach((page, index) => {
+        const text = page.querySelector(`textarea[id^="pageText"]`).value;
+        const imgSrc = page.querySelector('.uploaded-image')?.src;
+        if (text || imgSrc) {
+          story.pages.push({
+            page_number: index + 1,
+            text: text,
+            imgSrc: imgSrc
+          });
+        }
+      });
+
+      // --- Generate the HTML for the new tab ---
+      let previewHtml = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Preview: ${story.title}</title>
+          <style>
+            body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: #f0f0f0; }
+            .book-container { max-width: 800px; margin: 2rem auto; }
+            .page { background-color: white; padding: 2rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; min-height: 400px; align-items: center; }
+            .page.text-only { grid-template-columns: 1fr; }
+            h1 { text-align: center; margin-bottom: 2rem; color: #333; }
+            p { font-size: 1.1rem; line-height: 1.8; color: #444; }
+            img { max-width: 100%; border-radius: 8px; }
+            .page-number { text-align: center; color: #999; margin-top: 1rem; font-style: italic; }
+            @media (max-width: 600px) {
+              .page { grid-template-columns: 1fr; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="book-container">
+            <h1>${story.title || 'Untitled Story'}</h1>
+      `;
+      
+      story.pages.forEach(p => {
+        const textSide = `<div class="text-content"><p>${p.text.replace(/\n/g, '<br>')}</p></div>`;
+        const imageSide = p.imgSrc ? `<div class="image-content"><img src="${p.imgSrc}" alt="Illustration for page ${p.page_number}"></div>` : '';
+        
+        previewHtml += `
+          <div class="page ${!p.imgSrc ? 'text-only' : ''}">
+            ${p.imgSrc ? textSide + imageSide : textSide}
+          </div>
+          <div class="page-number">${p.page_number}</div>
+        `;
+      });
+
+      previewHtml += `
+          </div>
+        </body>
+        </html>
+      `;
+
+      // --- Open the new tab and write the content ---
+      const previewWindow = window.open('', '_blank');
+      previewWindow.document.open();
+      previewWindow.document.write(previewHtml);
+      previewWindow.document.close();
+    }
+
+    function startNewStory() {
+      if (confirm('This will start a new story, but your current work will be saved. Is that okay?')) {
+        startOver(new Event('submit'));
+      }
     }
   </script>
 </body>

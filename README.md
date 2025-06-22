@@ -122,6 +122,119 @@ jongubooks/
 - [ ] Story templates marketplace
 - [ ] Parent community
 
+## 🔐 Next Steps & Multi-User Authentication
+
+### Current Limitations (June 2024)
+**⚠️ CRITICAL: The current application is NOT ready for multiple simultaneous users**
+
+#### Data Flow Issues:
+- **Shared Memory Storage**: All users share the same in-memory `stories` dictionary
+- **No User Isolation**: User A's stories are visible to User B
+- **Race Conditions**: Multiple users editing simultaneously can corrupt data
+- **Session Confusion**: All users see the same dummy story on startup
+- **No Persistence**: Server restart = complete data loss
+
+#### Current Data Flow:
+```
+User A Session          User B Session
+     ↓                       ↓
+Browser (Frontend)    Browser (Frontend)
+     ↓                       ↓
+HTTP Requests         HTTP Requests
+     ↓                       ↓
+FastAPI Backend       FastAPI Backend
+     ↓                       ↓
+Shared Memory Dict    Shared Memory Dict
+  stories = {}          stories = {}
+     ↓                       ↓
+SAME DATA STORAGE     SAME DATA STORAGE
+```
+
+### Required Changes for Multi-User Support:
+
+#### 1. Database Architecture
+```sql
+-- SQLite tables for user isolation
+CREATE TABLE users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE,
+    password_hash TEXT,
+    created_at TIMESTAMP
+);
+
+CREATE TABLE stories (
+    id TEXT PRIMARY KEY,
+    user_id TEXT,
+    title TEXT,
+    core_message TEXT,
+    outline TEXT,
+    age TEXT,
+    tone TEXT,
+    created_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE characters (
+    id TEXT PRIMARY KEY,
+    story_id TEXT,
+    name TEXT,
+    type TEXT,
+    personality TEXT,
+    FOREIGN KEY (story_id) REFERENCES stories(id)
+);
+
+CREATE TABLE pages (
+    id TEXT PRIMARY KEY,
+    story_id TEXT,
+    page_number INTEGER,
+    text TEXT,
+    FOREIGN KEY (story_id) REFERENCES stories(id)
+);
+```
+
+#### 2. Authentication System
+- **JWT Token Authentication** for stateless sessions
+- **User Registration/Login** endpoints
+- **Password Hashing** with bcrypt
+- **Protected API Routes** requiring authentication
+
+#### 3. API Changes
+```python
+# Current (problematic)
+@app.get("/api/stories")
+async def get_stories():
+    return list(stories.values())  # All users see all stories
+
+# Required (user-isolated)
+@app.get("/api/stories")
+async def get_stories(user_id: str):
+    return get_user_stories(user_id)  # Only user's stories
+```
+
+#### 4. Frontend Changes
+- **Login/Register Forms**
+- **User Session Management**
+- **User-Specific Story Loading**
+- **Authentication Headers** on all API calls
+
+### Implementation Priority:
+1. **SQLite Database** with user and story tables
+2. **Basic Authentication** (email/password)
+3. **User-Specific API Endpoints**
+4. **Frontend Login System**
+5. **Session Management**
+
+### Deployment Considerations:
+- **SQLite** works perfectly on Render/Railway/Vercel
+- **No external database** needed initially
+- **Simple authentication** without OAuth complexity
+- **Environment variables** for JWT secrets
+
+### Temporary Solution:
+- **Removed Save Button** from frontend to prevent data confusion
+- **Focus on UI/UX** development while planning authentication
+- **Single-user testing** only until multi-user ready
+
 ## 🔧 API Endpoints
 
 ### Story Management

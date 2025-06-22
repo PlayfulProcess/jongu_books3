@@ -45,9 +45,11 @@ class Page(BaseModel):
 class Story(BaseModel):
     id: Optional[str] = None
     title: str
-    age_range: str = "4-6 years"
-    theme: str = ""
-    lesson: str = ""
+    coreMessage: str = ""
+    outline: str = ""
+    totalWords: Optional[str] = ""
+    totalPages: Optional[str] = ""
+    age: str = "4-6 years"
     tone: str = "Gentle & Nurturing"
     characters: List[Character] = []
     pages: List[Page] = []
@@ -57,6 +59,26 @@ class Story(BaseModel):
 
 # In-memory storage (replace with PostgreSQL later)
 stories = {}
+# Create a dummy story for development
+if not stories:
+    dummy_id = str(uuid.uuid4())
+    stories[dummy_id] = Story(
+        id=dummy_id,
+        title="The Little Bear's Big Dream",
+        coreMessage="It's okay to be different and to follow your own path.",
+        outline="A young bear wants to be a gardener instead of a hunter, and learns to show his family the value of his unique skills.",
+        age="4-6 years",
+        tone="Gentle & Nurturing",
+        characters=[
+            Character(id=str(uuid.uuid4()), name="Barnaby", type="Young bear", personality="Curious and gentle"),
+            Character(id=str(uuid.uuid4()), name="Papa Bear", type="Wise guide", personality="Initially skeptical but loving")
+        ],
+        pages=[
+            Page(id=str(uuid.uuid4()), page_number=1, text="Once upon a time, in a cozy den, lived a little bear named Barnaby."),
+            Page(id=str(uuid.uuid4()), page_number=2, text="Unlike the other bears, Barnaby didn't dream of catching fish; he dreamt of growing flowers.")
+        ],
+        created_at=datetime.now()
+    )
 
 # Serve frontend at root
 @app.get("/")
