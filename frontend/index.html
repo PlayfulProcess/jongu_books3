@@ -981,23 +981,17 @@
             <label class="field-label">Character Purpose & Personality</label>
             <textarea class="field-input field-textarea" placeholder="What makes this character special? What wisdom do they carry?" id="characterPersonality1"></textarea>
           </div>
-          <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="field-group">
-              <label class="field-label">Character Type</label>
-              <input type="text" list="character-types" class="field-input" id="characterType1" placeholder="Select or type a custom type">
-            </div>
-            <div class="field-group">
-              <label class="field-label">Visual Description for AI</label>
-              <textarea class="field-input field-textarea" placeholder="e.g., A small, fluffy bunny with long, floppy ears and a tiny pink nose, wearing a blue waistcoat." id="characterVisualDescription1"></textarea>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Visual Reference</label>
-              <div class="input-with-button">
-                <input type="file" class="field-input" accept="image/*" id="characterImage1" onchange="previewManualImage(this)">
-                <button class="button button-secondary" onclick="generateCharacterImage(this)">🎨 Use AI to Create Image</button>
-              </div>
-              <div class="image-preview" id="imagePreview1"></div>
-            </div>
+          <div class="field-group">
+            <label class="field-label">Visual Description for AI</label>
+            <textarea class="field-input field-textarea" placeholder="e.g., A small, fluffy bunny with long, floppy ears and a tiny pink nose, wearing a blue waistcoat." id="characterVisualDescription1"></textarea>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Visual Reference (Optional)</label>
+            <input type="file" class="field-input" accept="image/*" id="characterImage1" onchange="previewManualImage(this)">
+            <div class="image-preview" id="imagePreview1"></div>
+          </div>
+          <div class="button-group" style="margin-top: 1rem;">
+            <button class="button" onclick="generateCharacterImage(this)">🎨 Use AI to Create Image</button>
           </div>
         </div>
       </div>
@@ -1200,25 +1194,19 @@
             <label class="field-label">Character Purpose & Personality</label>
             <textarea class="field-input field-textarea" placeholder="What makes this character special?" id="characterPersonality${characterCount}">${character ? character.personality : ''}</textarea>
         </div>
-        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div class="field-group">
-                <label class="field-label">Character Type</label>
-                <input type="text" list="character-types" class="field-input" id="characterType${characterCount}" placeholder="Select or type a custom type" value="${character ? character.type : ''}">
-            </div>
-            <div class="field-group">
-                <label class="field-label">Visual Description for AI</label>
-                <textarea class="field-input field-textarea" placeholder="e.g., A small, fluffy bunny with long, floppy ears and a tiny pink nose, wearing a blue waistcoat." id="characterVisualDescription${characterCount}"></textarea>
-            </div>
-            <div class="field-group">
-                <label class="field-label">Visual Reference</label>
-                <div class="input-with-button">
-                  <input type="file" class="field-input" accept="image/*" id="characterImage${characterCount}" onchange="previewManualImage(this)">
-                  <button class="button button-secondary" onclick="generateCharacterImage(this)">🎨 Use AI to Create Image</button>
-                </div>
-                <div class="image-preview" id="imagePreview${characterCount}"></div>
-            </div>
+        <div class="field-group">
+            <label class="field-label">Visual Description for AI</label>
+            <textarea class="field-input field-textarea" placeholder="e.g., A small, fluffy bunny with long, floppy ears and a tiny pink nose, wearing a blue waistcoat." id="characterVisualDescription${characterCount}"></textarea>
         </div>
-        <div class="button-group">
+        <div class="field-group">
+            <label class="field-label">Visual Reference (Optional)</label>
+            <input type="file" class="field-input" accept="image/*" id="characterImage${characterCount}" onchange="previewManualImage(this)">
+            <div class="image-preview" id="imagePreview${characterCount}"></div>
+        </div>
+        <div class="button-group" style="margin-top: 1rem;">
+            <button class="button" onclick="generateCharacterImage(this)">🎨 Use AI to Create Image</button>
+        </div>
+        <div class="button-group" style="margin-top: 1rem;">
           <button class="button button-secondary" onclick="removeCharacter(this)">🗑️ Remove</button>
         </div>
       `;

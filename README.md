@@ -268,6 +268,21 @@ async def get_stories(user_id: str):
 
 This is a personal project focused on helping parents create magical moments with their children. Every line of code serves that purpose.
 
+## 🎨 Design System
+
+### Buttons
+
+To ensure a clear and consistent user experience, buttons follow a simple design logic:
+
+-   **Primary Button (Purple)**: Used exclusively for high-value calls-to-action, specifically for upgrading to a paid tier or accessing premium, paid features.
+    -   *Example*: `✨ Upgrade for Integrated AI`
+
+-   **Secondary Button (White with a border)**: The standard button for all other actions within the application. This includes:
+    -   Integrated AI functions (e.g., generating characters, pages, or images).
+    -   Standard navigation and form actions.
+    -   Links to free external tools (like the GPT+ Assistant).
+    -   *Examples*: `🤖 Use AI to Complete Story Foundation`, `+ Add Another Character`
+
 ## 📝 License
 
 This project is for personal use and helping parents create meaningful stories for their children.
