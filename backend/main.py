@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 import openai
 import json
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from the root directory
+load_dotenv(dotenv_path='../.env')
 
 # Configure OpenAI client
 openai.api_key = os.getenv("OPENAI_API_KEY")

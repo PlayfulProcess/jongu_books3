@@ -2,14 +2,15 @@ version: '3.8'
 
 services:
   jongubooks:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - GHOST_API_URL=${GHOST_API_URL}
-      - GHOST_ADMIN_KEY=${GHOST_ADMIN_KEY}
+    env_file:
+      - ./.env
     volumes:
+      - ./backend:/app
       - ./frontend:/app/frontend
       - ./static:/app/static
     restart: unless-stopped 
