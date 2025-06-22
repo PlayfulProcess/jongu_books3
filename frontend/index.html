@@ -802,6 +802,24 @@
     .ai-chat-input-container button:hover {
       background: #6b46c1;
     }
+
+    .page-container:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-area {
+      position: relative;
+      height: 100%;
+    }
+    .text-area textarea {
+      height: 100%;
+      padding-bottom: 4.5rem; /* Space for button */
+    }
+    .text-area .button {
+      position: absolute;
+      bottom: 1.5rem;
+      right: 1.5rem;
+    }
   </style>
 </head>
 <body>
@@ -1005,7 +1023,7 @@
         <h2 class="section-title">Design Your Pages</h2>
       </div>
        <div class="button-group" style="margin-bottom: 2rem;">
-        <button class="button button-secondary" onclick="generatePages(event)">
+        <button class="button" onclick="generatePages(event)">
           🤖 Use AI to Create All Pages
         </button>
       </div>
@@ -1022,14 +1040,12 @@
                 <textarea class="field-input field-textarea" placeholder="e.g., A bunny looking at the moon from a hill." id="pageImagePrompt1"></textarea>
             </div>
             <div class="button-group">
-                <button class="button button-secondary" onclick="generatePageImage(this)">🎨 Use AI to Create Image</button>
+                <button class="button" onclick="generatePageImage(this)">🎨 Use AI to Create Image</button>
             </div>
           </div>
           <div class="text-area">
             <textarea class="field-input field-textarea" style="height: 100%;" placeholder="Enter your page text here..." id="pageText1"></textarea>
-             <div class="button-group" style="margin-top: 1rem;">
-                <button class="button button-secondary" onclick="generatePageText(this)">📝 Use AI to Create Text</button>
-            </div>
+             <button class="button" onclick="generatePageText(this)">📝 Use AI to Create Text</button>
           </div>
         </div>
       </div>
@@ -1305,17 +1321,15 @@
                 <textarea class="field-input field-textarea" placeholder="e.g., A bunny looking at the moon from a hill." id="pageImagePrompt${pageCount}"></textarea>
             </div>
             <div class="button-group">
-                <button class="button button-secondary" onclick="generatePageImage(this)">🎨 Use AI to Create Image</button>
+                <button class="button" onclick="generatePageImage(this)">🎨 Use AI to Create Image</button>
             </div>
           </div>
         <div class="text-area">
-          <textarea class="field-input field-textarea" style="height: 100%;" placeholder="Enter your page text here..." id="pageText${pageCount}">${page ? page.text : ''}</textarea>
-           <div class="button-group" style="margin-top: 1rem;">
-             <button class="button button-secondary" onclick="generatePageText(this)">📝 Use AI to Create Text</button>
-          </div>
-          <div class="button-group" style="margin-top: 1rem;">
+          <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText${pageCount}">${page ? page.text : ''}</textarea>
+           <button class="button" onclick="generatePageText(this)">📝 Use AI to Create Text</button>
+        </div>
+        <div class="button-group" style="margin-top: 1rem; justify-content: flex-end; width: 100%;">
             <button class="button button-secondary" onclick="removePage(this)">🗑️ Remove Page</button>
-          </div>
         </div>
       `;
       container.appendChild(newPage);
