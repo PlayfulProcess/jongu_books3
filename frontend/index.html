@@ -996,11 +996,6 @@
         </div>
       </div>
       <button class="add-button" onclick="addCharacter()">+ Add Another Character</button>
-      <div class="button-group" style="margin-top: 2rem; justify-content: flex-end;">
-        <button class="button" onclick="generatePages(event)">
-          🤖 Use AI to Create Pages
-        </button>
-      </div>
     </section>
 
     <!-- Step 3: Pages & Layout -->
@@ -1009,15 +1004,32 @@
         <div class="step-number">3</div>
         <h2 class="section-title">Design Your Pages</h2>
       </div>
+       <div class="button-group" style="margin-bottom: 2rem;">
+        <button class="button button-secondary" onclick="generatePages(event)">
+          🤖 Use AI to Create All Pages
+        </button>
+      </div>
       <div id="pagesContainer">
         <div class="page-container" style="position: relative;">
           <span class="page-number">1</span>
-          <div class="image-area" onclick="uploadPageImage(this)">
-            <span class="image-placeholder-icon">🎨</span>
-            Click to upload image
+           <div class="page-image-section">
+            <div class="image-area" onclick="uploadPageImage(this)">
+              <span class="image-placeholder-icon">🎨</span>
+              Click to upload image
+            </div>
+            <div class="field-group" style="margin-top: 1rem;">
+                <label class="field-label">Visual Description for AI Image</label>
+                <textarea class="field-input field-textarea" placeholder="e.g., A bunny looking at the moon from a hill." id="pageImagePrompt1"></textarea>
+            </div>
+            <div class="button-group">
+                <button class="button button-secondary" onclick="generatePageImage(this)">🎨 Use AI to Create Image</button>
+            </div>
           </div>
           <div class="text-area">
-            <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText1"></textarea>
+            <textarea class="field-input field-textarea" style="height: 100%;" placeholder="Enter your page text here..." id="pageText1"></textarea>
+             <div class="button-group" style="margin-top: 1rem;">
+                <button class="button button-secondary" onclick="generatePageText(this)">📝 Use AI to Create Text</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1283,12 +1295,24 @@
       newPage.style.position = 'relative';
       newPage.innerHTML = `
         <span class="page-number">${pageCount}</span>
-        <div class="image-area" onclick="uploadPageImage(this)">
-          <span class="image-placeholder-icon">🎨</span>
-          Click to upload image
-        </div>
+        <div class="page-image-section">
+            <div class="image-area" onclick="uploadPageImage(this)">
+              <span class="image-placeholder-icon">🎨</span>
+              Click to upload image
+            </div>
+            <div class="field-group" style="margin-top: 1rem;">
+                <label class="field-label">Visual Description for AI Image</label>
+                <textarea class="field-input field-textarea" placeholder="e.g., A bunny looking at the moon from a hill." id="pageImagePrompt${pageCount}"></textarea>
+            </div>
+            <div class="button-group">
+                <button class="button button-secondary" onclick="generatePageImage(this)">🎨 Use AI to Create Image</button>
+            </div>
+          </div>
         <div class="text-area">
-          <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText${pageCount}">${page ? page.text : ''}</textarea>
+          <textarea class="field-input field-textarea" style="height: 100%;" placeholder="Enter your page text here..." id="pageText${pageCount}">${page ? page.text : ''}</textarea>
+           <div class="button-group" style="margin-top: 1rem;">
+             <button class="button button-secondary" onclick="generatePageText(this)">📝 Use AI to Create Text</button>
+          </div>
           <div class="button-group" style="margin-top: 1rem;">
             <button class="button button-secondary" onclick="removePage(this)">🗑️ Remove Page</button>
           </div>
@@ -1322,6 +1346,14 @@
         }
       };
       input.click();
+    }
+
+    async function generatePageImage(button) {
+      showToast("AI image generation for pages coming soon!");
+    }
+
+    async function generatePageText(button) {
+      showToast("AI text generation for pages coming soon!");
     }
 
     function previewBook() {
@@ -1463,7 +1495,7 @@
     async function generatePages(event) {
       event.preventDefault();
       // Placeholder for AI page generation
-      showToast("AI page generation coming soon!");
+      showToast("AI page generation for all pages coming soon!");
       document.getElementById('pages-section').scrollIntoView({ behavior: 'smooth' });
       updateProgress('pages');
       document.querySelector('.nav-item.active').classList.remove('active');
