@@ -679,6 +679,13 @@
       <a href="#export-section" class="nav-item" onclick="setActiveSection(event, 'export')">
         <span>💾</span> Review & Export
       </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-title">Tools</div>
+      <a href="#" class="nav-item" onclick="saveWork(event)">
+        <span>💾</span> Save Work
+      </a>
       <a href="#" class="nav-item" onclick="startOver(event)">
         <span>🔄</span> Start Over
       </a>
@@ -767,6 +774,16 @@
       </div>
       <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
         <div class="field-group">
+          <label class="field-label">Total Words (Optional)</label>
+          <input type="number" class="field-input" placeholder="e.g., 500" id="totalWords">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Number of Pages (Optional)</label>
+          <input type="number" class="field-input" placeholder="e.g., 12" id="totalPages">
+        </div>
+      </div>
+      <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
           <label class="field-label">Story Tone</label>
           <select class="field-input" id="storyTone">
             <option>Gentle & Nurturing</option>
@@ -786,7 +803,9 @@
         </div>
       </div>
       <div class="button-group">
-        <button class="button button-secondary" onclick="formatIntoPages()">📖 Create Pages</button>
+        <button class="button" onclick="document.getElementById('characters-section').scrollIntoView({ behavior: 'smooth' }); setActiveSection(event, 'characters')">
+          👤 Create Characters
+        </button>
       </div>
     </section>
 
@@ -816,12 +835,14 @@
               <input type="file" class="field-input" accept="image/*" id="characterImage1">
             </div>
           </div>
-          <div class="button-group">
-            <button class="button button-secondary" onclick="saveCharacter(1)">💾 Save</button>
-          </div>
         </div>
       </div>
       <button class="add-button" onclick="addCharacter()">+ Add Another Character</button>
+      <div class="button-group" style="margin-top: 2rem; justify-content: flex-end;">
+        <button class="button" onclick="document.getElementById('pages-section').scrollIntoView({ behavior: 'smooth' }); setActiveSection(event, 'pages')">
+          📄 Create Pages
+        </button>
+      </div>
     </section>
 
     <!-- Step 3: Pages & Layout -->
@@ -839,9 +860,6 @@
           </div>
           <div class="text-area">
             <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText1"></textarea>
-            <div class="button-group" style="margin-top: 1rem;">
-              <button class="button button-secondary" onclick="savePage(1)">💾 Save Page</button>
-            </div>
           </div>
         </div>
       </div>
@@ -895,6 +913,13 @@
   <script>
     // Global state
     let storyData = {
+      title: '',
+      coreMessage: '',
+      outline: '',
+      totalWords: '',
+      totalPages: '',
+      tone: '',
+      age: '',
       characters: [],
       pages: []
     };
@@ -921,6 +946,119 @@
       // Close sidebar on mobile
       if (window.innerWidth <= 768) {
         document.getElementById('sidebar').classList.remove('open');
+      }
+    }
+
+    function saveWork(event) {
+      event.preventDefault();
+
+      // --- Gather Story Foundation ---
+      storyData.title = document.getElementById('storyTitle').value;
+      storyData.coreMessage = document.getElementById('coreMessage').value;
+      storyData.outline = document.getElementById('storyOutline').value;
+      storyData.totalWords = document.getElementById('totalWords').value;
+      storyData.totalPages = document.getElementById('totalPages').value;
+      storyData.tone = document.getElementById('storyTone').value;
+      storyData.age = document.getElementById('targetAge').value;
+
+      // --- Gather Characters ---
+      storyData.characters = [];
+      const characterCards = document.querySelectorAll('#charactersContainer .character-card');
+      characterCards.forEach((card, index) => {
+        const id = index + 1; // This might become incorrect if characters are removed.
+        const name = card.querySelector(`input[id^="characterName"]`)?.value || '';
+        const personality = card.querySelector(`textarea[id^="characterPersonality"]`)?.value || '';
+        const type = card.querySelector(`input[id^="characterType"]`)?.value || '';
+        
+        if (name) { // Only save characters that have a name
+          storyData.characters.push({ id: `char${id}`, name, personality, type });
+        }
+      });
+
+      // --- Gather Pages ---
+      storyData.pages = [];
+      const pageContainers = document.querySelectorAll('#pagesContainer .page-container');
+      pageContainers.forEach((page, index) => {
+        const id = index + 1; // This might become incorrect if pages are removed.
+        const text = page.querySelector(`textarea[id^="pageText"]`)?.value || '';
+
+        if (text) { // Only save pages that have text
+          storyData.pages.push({ id: `page${id}`, text });
+        }
+      });
+      
+      console.log('Saving all work...', storyData);
+      showToast('Your entire project has been saved!');
+      // Here you would typically send `storyData` to a backend API.
+    }
+
+    function startOver(event) {
+      event.preventDefault();
+      if (confirm('Are you sure you want to start over? This will erase all your progress.')) {
+        // Reset data
+        storyData = { characters: [], pages: [] };
+        characterCount = 1;
+        pageCount = 1;
+
+        // Reset Story Foundation fields
+        document.getElementById('storyTitle').value = '';
+        document.getElementById('coreMessage').value = '';
+        document.getElementById('storyOutline').value = '';
+        document.getElementById('totalWords').value = '';
+        document.getElementById('totalPages').value = '';
+        document.getElementById('storyTone').selectedIndex = 0;
+        document.getElementById('targetAge').selectedIndex = 0;
+
+        // Reset Characters section to its initial state
+        const charactersContainer = document.getElementById('charactersContainer');
+        charactersContainer.innerHTML = `
+          <div class="character-card">
+            <div class="field-group">
+              <label class="field-label">Character Name</label>
+              <input type="text" class="field-input" placeholder="e.g., Maya the Mindful Elephant" id="characterName1">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Character Purpose & Personality</label>
+              <textarea class="field-input field-textarea" placeholder="What makes this character special? What wisdom do they carry?" id="characterPersonality1"></textarea>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="field-group">
+                <label class="field-label">Character Type</label>
+                <input type="text" list="character-types" class="field-input" id="characterType1" placeholder="Select or type a custom type">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Visual Reference</label>
+                <input type="file" class="field-input" accept="image/*" id="characterImage1">
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Reset Pages section to its initial state
+        const pagesContainer = document.getElementById('pagesContainer');
+        pagesContainer.innerHTML = `
+          <div class="page-container" style="position: relative;">
+            <span class="page-number">1</span>
+            <div class="image-area" onclick="uploadPageImage(this)">
+              <span class="image-placeholder-icon">🎨</span>
+              Click to upload image
+            </div>
+            <div class="text-area">
+              <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText1"></textarea>
+            </div>
+          </div>
+        `;
+
+        // Reset navigation to the first step
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        const firstNavItem = document.querySelector('.nav-item[href="#story-section"]');
+        if (firstNavItem) {
+          firstNavItem.classList.add('active');
+          firstNavItem.click()
+        }
+        updateProgress('story');
+
+        showToast('Project cleared. Ready for a new story!');
       }
     }
 
@@ -953,7 +1091,7 @@
       }, 3000);
     }
 
-    // --- Character management ---
+    // --- Card management ---
     let characterCount = 1;
     function addCharacter() {
       characterCount++;
@@ -980,7 +1118,6 @@
             </div>
         </div>
         <div class="button-group">
-          <button class="button button-secondary" onclick="saveCharacter(${characterCount})">💾 Save</button>
           <button class="button button-secondary" onclick="removeCharacter(this)">🗑️ Remove</button>
         </div>
       `;
@@ -995,30 +1132,6 @@
       }
     }
 
-    function saveCharacter(id) {
-      const name = document.getElementById(`characterName${id}`).value;
-      const personality = document.getElementById(`characterPersonality${id}`).value;
-      const type = document.getElementById(`characterType${id}`).value;
-      
-      if (!name || !personality) {
-        showToast('Please fill in character name and personality');
-        return;
-      }
-      
-      const character = { id, name, personality, type };
-      const existingIndex = storyData.characters.findIndex(c => c.id === id);
-      
-      if (existingIndex > -1) {
-        storyData.characters[existingIndex] = character;
-      } else {
-        storyData.characters.push(character);
-      }
-      
-      console.log('Current story data:', storyData);
-      showToast(`Character "${name}" saved!`);
-    }
-
-    // --- Page management ---
     let pageCount = 1;
     function addPage() {
       pageCount++;
@@ -1035,7 +1148,6 @@
         <div class="text-area">
           <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText${pageCount}"></textarea>
           <div class="button-group" style="margin-top: 1rem;">
-            <button class="button button-secondary" onclick="savePage(${pageCount})">💾 Save Page</button>
             <button class="button button-secondary" onclick="removePage(this)">🗑️ Remove Page</button>
           </div>
         </div>
@@ -1066,98 +1178,6 @@
         }
       };
       input.click();
-    }
-    
-    function savePage(id) {
-        const text = document.getElementById(`pageText${id}`).value;
-        if(!text) {
-            showToast('Please add text to the page before saving.');
-            return;
-        }
-
-        const page = { id, text };
-        const existingIndex = storyData.pages.findIndex(p => p.id === id);
-        if (existingIndex > -1) {
-            storyData.pages[existingIndex] = page;
-        } else {
-            storyData.pages.push(page);
-        }
-        console.log('Current story data:', storyData);
-        showToast(`Page ${id} saved!`);
-    }
-
-    function startOver(event) {
-      event.preventDefault();
-      if (confirm('Are you sure you want to start over? This will erase all your progress.')) {
-        // Reset data
-        storyData = { characters: [], pages: [] };
-        characterCount = 1;
-        pageCount = 1;
-
-        // Reset Story Foundation fields
-        document.getElementById('storyTitle').value = '';
-        document.getElementById('coreMessage').value = '';
-        document.getElementById('storyOutline').value = '';
-        document.getElementById('storyTone').selectedIndex = 0;
-        document.getElementById('targetAge').selectedIndex = 0;
-
-        // Reset Characters section to its initial state
-        const charactersContainer = document.getElementById('charactersContainer');
-        charactersContainer.innerHTML = `
-          <div class="character-card">
-            <div class="field-group">
-              <label class="field-label">Character Name</label>
-              <input type="text" class="field-input" placeholder="e.g., Maya the Mindful Elephant" id="characterName1">
-            </div>
-            <div class="field-group">
-              <label class="field-label">Character Purpose & Personality</label>
-              <textarea class="field-input field-textarea" placeholder="What makes this character special? What wisdom do they carry?" id="characterPersonality1"></textarea>
-            </div>
-            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-              <div class="field-group">
-                <label class="field-label">Character Type</label>
-                <input type="text" list="character-types" class="field-input" id="characterType1" placeholder="Select or type a custom type">
-              </div>
-              <div class="field-group">
-                <label class="field-label">Visual Reference</label>
-                <input type="file" class="field-input" accept="image/*" id="characterImage1">
-              </div>
-            </div>
-            <div class="button-group">
-              <button class="button button-secondary" onclick="saveCharacter(1)">💾 Save</button>
-            </div>
-          </div>
-        `;
-
-        // Reset Pages section to its initial state
-        const pagesContainer = document.getElementById('pagesContainer');
-        pagesContainer.innerHTML = `
-          <div class="page-container" style="position: relative;">
-            <span class="page-number">1</span>
-            <div class="image-area" onclick="uploadPageImage(this)">
-              <span class="image-placeholder-icon">🎨</span>
-              Click to upload image
-            </div>
-            <div class="text-area">
-              <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText1"></textarea>
-              <div class="button-group" style="margin-top: 1rem;">
-                <button class="button button-secondary" onclick="savePage(1)">💾 Save Page</button>
-              </div>
-            </div>
-          </div>
-        `;
-
-        // Reset navigation to the first step
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        const firstNavItem = document.querySelector('.nav-item[href="#story-section"]');
-        if (firstNavItem) {
-          firstNavItem.classList.add('active');
-          firstNavItem.click()
-        }
-        updateProgress('story');
-
-        showToast('Project cleared. Ready for a new story!');
-      }
     }
   </script>
 </body>
