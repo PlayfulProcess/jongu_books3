@@ -304,8 +304,8 @@
     }
     
     .sticky-ai-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(128, 90, 213, 0.4);
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(128, 90, 213, 0.4);
     }
     
     /* Enhanced Sections */
@@ -648,6 +648,138 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    /* AI Chat Popup */
+    #open-chat-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #open-chat-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .ai-chat-popup {
+      display: none;
+      position: fixed;
+      bottom: 6.5rem;
+      right: 2rem;
+      width: 350px;
+      max-height: 500px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .ai-chat-popup.show {
+      display: flex;
+    }
+
+    .ai-chat-header {
+      background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ai-chat-header h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+    .ai-chat-header button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+    .ai-chat-header button:hover {
+      opacity: 1;
+    }
+
+    .ai-chat-messages {
+      flex-grow: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .message {
+      padding: 0.5rem 1rem;
+      border-radius: 18px;
+      max-width: 80%;
+      line-height: 1.4;
+    }
+    .message.assistant {
+      background-color: #f1f1f1;
+      color: #333;
+      border-top-left-radius: 4px;
+      align-self: flex-start;
+    }
+    .message.user {
+      background-color: #805ad5;
+      color: white;
+      border-top-right-radius: 4px;
+      align-self: flex-end;
+    }
+     .message.typing {
+      font-style: italic;
+      color: #718096;
+      align-self: flex-start;
+    }
+
+    .ai-chat-input-container {
+      display: flex;
+      padding: 1rem;
+      border-top: 1px solid #e2e8f0;
+    }
+    .ai-chat-input-container input {
+      flex-grow: 1;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      margin-right: 0.5rem;
+    }
+    .ai-chat-input-container button {
+      background: #805ad5;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .ai-chat-input-container button:hover {
+      background: #6b46c1;
+    }
   </style>
 </head>
 <body>
@@ -800,8 +932,11 @@
         </div>
       </div>
       <div class="button-group">
+        <button class="button button-secondary" onclick="completeStoryFoundation(event)">
+          🤖 Use AI to Complete Story Foundation
+        </button>
         <button class="button" onclick="document.getElementById('characters-section').scrollIntoView({ behavior: 'smooth' }); setActiveSection(event, 'characters')">
-          👤 Create Characters
+          Next: Create Characters ➡️
         </button>
       </div>
     </section>
@@ -901,11 +1036,22 @@
     </section>
   </main>
 
-  <!-- Sticky AI Assistant Button -->
-  <button class="sticky-ai-button" onclick="openAIAssistant()">
-    <span>🤖</span>
-    <span>AI Assistant</span>
-  </button>
+  <!-- AI Chat Assistant -->
+  <div id="ai-chat-popup" class="ai-chat-popup">
+    <div class="ai-chat-header">
+      <h3>JonguBooks Assistant</h3>
+      <button id="close-chat-btn">&times;</button>
+    </div>
+    <div class="ai-chat-messages" id="ai-chat-messages">
+      <div class="message assistant">Hello! I'm your creative partner. Ask me for story ideas, character names, or anything else you need to build a wonderful book.</div>
+    </div>
+    <div class="ai-chat-input-container">
+      <input type="text" id="ai-chat-input" placeholder="e.g., 'Suggest a story about sharing'">
+      <button id="ai-chat-send-btn">➤</button>
+    </div>
+  </div>
+
+  <button id="open-chat-btn" class="open-chat-btn">🤖</button>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast">
@@ -1248,6 +1394,114 @@
       updateProgress('pages');
       document.querySelector('.nav-item.active').classList.remove('active');
       document.querySelector('.nav-item[href="#pages-section"]').classList.add('active');
+    }
+
+    // --- AI Chat ---
+    const chatPopup = document.getElementById('ai-chat-popup');
+    const openChatBtn = document.getElementById('open-chat-btn');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+    const chatMessages = document.getElementById('ai-chat-messages');
+    const chatInput = document.getElementById('ai-chat-input');
+    const sendChatBtn = document.getElementById('ai-chat-send-btn');
+    let chatHistory = [];
+
+    openChatBtn.addEventListener('click', () => chatPopup.classList.add('show'));
+    closeChatBtn.addEventListener('click', () => chatPopup.classList.remove('show'));
+
+    sendChatBtn.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendChatMessage();
+      }
+    });
+
+    async function sendChatMessage() {
+      const messageText = chatInput.value.trim();
+      if (!messageText) return;
+
+      // Add user message to UI
+      addMessageToChat('user', messageText);
+      chatInput.value = '';
+
+      // Add user message to history
+      chatHistory.push({ role: 'user', content: messageText });
+      
+      // Add typing indicator
+      const typingIndicator = addMessageToChat('typing', '...');
+
+      try {
+        const response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: messageText, history: chatHistory })
+        });
+        const result = await response.json();
+        
+        // Remove typing indicator
+        chatMessages.removeChild(typingIndicator);
+
+        if (result.success) {
+          addMessageToChat('assistant', result.reply);
+          // Add assistant reply to history
+          chatHistory.push({ role: 'assistant', content: result.reply });
+        } else {
+          addMessageToChat('assistant', 'Sorry, I had trouble connecting. Please try again.');
+        }
+      } catch (error) {
+        chatMessages.removeChild(typingIndicator);
+        addMessageToChat('assistant', 'Sorry, an error occurred.');
+        console.error('Chat error:', error);
+      }
+    }
+
+    function addMessageToChat(role, text) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', role);
+      messageElement.textContent = text;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+      return messageElement;
+    }
+
+    async function completeStoryFoundation(event) {
+      event.preventDefault();
+      const button = event.currentTarget;
+      button.disabled = true;
+      button.textContent = '🤖 Thinking...';
+
+      try {
+        const storyDetails = {
+          title: document.getElementById('storyTitle').value,
+          coreMessage: document.getElementById('coreMessage').value,
+          age: document.getElementById('targetAge').value,
+          tone: document.getElementById('storyTone').value
+        };
+
+        const response = await fetch('/api/gpt/generate_story_foundation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(storyDetails)
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          document.getElementById('storyTitle').value = result.data.title || '';
+          document.getElementById('coreMessage').value = result.data.coreMessage || '';
+          document.getElementById('storyOutline').value = result.data.outline || '';
+          document.getElementById('storyTone').value = result.data.tone || 'Gentle & Nurturing';
+          document.getElementById('targetAge').value = result.data.age || '4-6 years';
+          showToast('AI has completed the story foundation!');
+        } else {
+          throw new Error(result.detail || 'Failed to generate story foundation.');
+        }
+      } catch (error) {
+        console.error('Error generating story foundation:', error);
+        showToast('Error: Could not complete the story foundation.');
+      } finally {
+        button.disabled = false;
+        button.textContent = '🤖 Use AI to Complete Story Foundation';
+      }
     }
   </script>
 </body>

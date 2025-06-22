@@ -53,6 +53,16 @@ class StoryGenerationRequest(BaseModel):
     age: str
     tone: str
 
+class StoryFoundationRequest(BaseModel):
+    title: Optional[str] = ""
+    coreMessage: Optional[str] = ""
+    age: Optional[str] = ""
+    tone: Optional[str] = ""
+
+class ChatRequest(BaseModel):
+    message: str
+    history: List[dict]
+
 class Story(BaseModel):
     id: Optional[str] = None
     title: str
@@ -188,6 +198,96 @@ async def gpt_generate_characters(req: StoryGenerationRequest):
     except Exception as e:
         print(f"Error calling OpenAI: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate characters: {e}")
+
+@app.post("/api/gpt/generate_story_foundation")
+async def gpt_generate_story_foundation(req: StoryFoundationRequest):
+    """Generate or complete a story foundation using AI"""
+    if not openai.api_key:
+        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+
+    try:
+        user_prompts = []
+        if req.title:
+            user_prompts.append(f"The story title is '{req.title}'.")
+        if req.coreMessage:
+            user_prompts.append(f"The core message is '{req.coreMessage}'.")
+        if req.age:
+            user_prompts.append(f"The target age is {req.age}.")
+        if req.tone:
+            user_prompts.append(f"The tone should be {req.tone}.")
+
+        if not user_prompts:
+            user_prompts.append("The user hasn't provided any details, so create a sweet, simple story idea for a young child.")
+
+        prompt = f"""
+        A user is creating a children's story. Based on the details they've provided, complete or create a story foundation.
+        If a field is already provided, either keep it or refine it. If it's empty, generate a creative value for it.
+
+        User's input:
+        - {" ".join(user_prompts)}
+
+        Your task is to return a JSON object with the following fields fully populated: "title", "coreMessage", "outline", "age", "tone".
+        The outline should be a simple, 3-5 sentence paragraph describing the story's arc.
+
+        JSON output format:
+        {{
+            "title": "A complete and engaging title",
+            "coreMessage": "A clear and concise life lesson",
+            "outline": "A paragraph outlining the story.",
+            "age": "An appropriate age group (e.g., '4-6 years')",
+            "tone": "A suitable tone (e.g., 'Gentle & Nurturing')"
+        }}
+        """
+
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a creative assistant for writing children's books."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.8,
+        )
+
+        foundation_json = response.choices[0].message.content
+        foundation = json.loads(foundation_json)
+
+        return {
+            "success": True,
+            "data": foundation
+        }
+
+    except Exception as e:
+        print(f"Error calling OpenAI: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate story foundation: {e}")
+
+@app.post("/api/ai/chat")
+async def ai_chat(req: ChatRequest):
+    """General purpose AI chat assistant"""
+    if not openai.api_key:
+        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+
+    system_prompt = {
+        "role": "system",
+        "content": "You are the JonguBooks Assistant, a friendly and creative partner for parents building children's stories. Your goal is to help users flesh out their ideas. You can help with brainstorming titles, suggesting core messages, creating characters, writing page content, and describing illustrations. Keep your tone encouraging and helpful. The user is currently on a specific step of the story creation process, so tailor your advice accordingly."
+    }
+
+    messages = [system_prompt] + req.history
+
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            temperature=0.7,
+        )
+        reply = response.choices[0].message.content
+
+        return {
+            "success": True,
+            "reply": reply
+        }
+    except Exception as e:
+        print(f"Error in AI chat: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get response from AI assistant.")
 
 # Regular API Endpoints
 @app.get("/api/stories")
