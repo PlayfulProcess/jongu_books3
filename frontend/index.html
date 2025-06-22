@@ -812,6 +812,11 @@
         <div class="step-number">2</div>
         <h2 class="section-title">Define Your Characters</h2>
       </div>
+      <div class="button-group">
+        <button class="button" onclick="generateCharacters(event)">
+          🤖 Use AI to Create Characters
+        </button>
+      </div>
       <div id="charactersContainer">
         <div class="character-card">
           <div class="field-group">
@@ -836,8 +841,8 @@
       </div>
       <button class="add-button" onclick="addCharacter()">+ Add Another Character</button>
       <div class="button-group" style="margin-top: 2rem; justify-content: flex-end;">
-        <button class="button" onclick="document.getElementById('pages-section').scrollIntoView({ behavior: 'smooth' }); setActiveSection(event, 'pages')">
-          📄 Create Pages
+        <button class="button" onclick="generatePages(event)">
+          🤖 Use AI to Create Pages
         </button>
       </div>
     </section>
@@ -1182,6 +1187,67 @@
       if (confirm('This will start a new story, but your current work will be saved. Is that okay?')) {
         startOver(new Event('submit'));
       }
+    }
+
+    async function generateCharacters(event) {
+        event.preventDefault();
+        const button = event.currentTarget;
+        button.disabled = true;
+        button.textContent = '🤖 Thinking...';
+
+        try {
+            const storyDetails = {
+                title: document.getElementById('storyTitle').value,
+                coreMessage: document.getElementById('coreMessage').value,
+                age: document.getElementById('targetAge').value,
+                tone: document.getElementById('storyTone').value
+            };
+
+            if (!storyDetails.title || !storyDetails.coreMessage) {
+                showToast('Please provide a title and core message first.');
+                return;
+            }
+
+            const response = await fetch('/api/gpt/generate_characters', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(storyDetails)
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                const charactersContainer = document.getElementById('charactersContainer');
+                charactersContainer.innerHTML = ''; // Clear existing characters
+                result.data.forEach(char => addCharacter(char));
+                showToast('AI-generated characters have been added!');
+                
+                // Navigate to the section
+                document.getElementById('characters-section').scrollIntoView({ behavior: 'smooth' });
+                updateProgress('characters');
+                document.querySelector('.nav-item.active').classList.remove('active');
+                document.querySelector('.nav-item[href="#characters-section"]').classList.add('active');
+
+            } else {
+                throw new Error(result.detail || 'Failed to generate characters.');
+            }
+        } catch (error) {
+            console.error('Error generating characters:', error);
+            showToast('Error: Could not generate characters.');
+        } finally {
+            button.disabled = false;
+            button.textContent = '🤖 Use AI to Create Characters';
+        }
+    }
+
+    async function generatePages(event) {
+      event.preventDefault();
+      // Placeholder for AI page generation
+      showToast("AI page generation coming soon!");
+      document.getElementById('pages-section').scrollIntoView({ behavior: 'smooth' });
+      updateProgress('pages');
+      document.querySelector('.nav-item.active').classList.remove('active');
+      document.querySelector('.nav-item[href="#pages-section"]').classList.add('active');
     }
   </script>
 </body>

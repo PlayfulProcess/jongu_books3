@@ -2,15 +2,20 @@ from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 import uuid
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import openai
+import json
 
 # Load environment variables
 load_dotenv()
+
+# Configure OpenAI client
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI(title="JonguBooks API", version="1.0.0")
 
@@ -41,6 +46,12 @@ class Page(BaseModel):
     text: str
     illustration_prompt: Optional[str] = ""
     illustration_url: Optional[str] = None
+
+class StoryGenerationRequest(BaseModel):
+    title: str
+    coreMessage: str
+    age: str
+    tone: str
 
 class Story(BaseModel):
     id: Optional[str] = None
@@ -129,6 +140,54 @@ async def gpt_add_page(story_id: str, page: Page):
         "data": page,
         "message": f"Page {page.page_number} added!"
     }
+
+@app.post("/api/gpt/generate_characters")
+async def gpt_generate_characters(req: StoryGenerationRequest):
+    """Generate character ideas using AI"""
+    if not openai.api_key:
+        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+
+    try:
+        prompt = f"""
+        Based on the following children's story idea, generate 3 distinct and creative characters.
+        For each character, provide a name, type, and personality.
+        The output should be a clean JSON array.
+
+        Story Title: "{req.title}"
+        Core Message: "{req.coreMessage}"
+        Target Age: {req.age}
+        Tone: {req.tone}
+
+        JSON output format:
+        [
+            {{
+                "name": "Character Name",
+                "type": "Character Type (e.g., Brave knight, Curious fox)",
+                "personality": "Personality traits (e.g., Adventurous and kind)"
+            }}
+        ]
+        """
+
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a creative assistant for writing children's books."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.8,
+        )
+        
+        characters_json = response.choices[0].message.content
+        characters = json.loads(characters_json)
+
+        return {
+            "success": True,
+            "data": characters
+        }
+
+    except Exception as e:
+        print(f"Error calling OpenAI: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate characters: {e}")
 
 # Regular API Endpoints
 @app.get("/api/stories")
