@@ -1,1479 +1,1164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JonguBooks - Story Creation for Mindful Parents</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #faf9f7;
-            color: #2d3748;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        /* Enhanced Sidebar with Better Visual Hierarchy */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 260px;
-            height: 100vh;
-            background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
-            border-right: 1px solid #e2e8f0;
-            padding: 2rem 0;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03);
-        }
-
-        .logo {
-            padding: 0 2rem 2rem 2rem;
-            border-bottom: 1px solid #e2e8f0;
-            margin-bottom: 2rem;
-            position: relative;
-        }
-
-        .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logo .sparkle {
-            animation: sparkle 2s ease-in-out infinite;
-        }
-
-        @keyframes sparkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.9); }
-        }
-
-        .logo p {
-            font-size: 0.875rem;
-            color: #718096;
-            font-style: italic;
-        }
-
-        .nav-section {
-            margin-bottom: 2rem;
-        }
-
-        .nav-title {
-            padding: 0 2rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #a0aec0;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 0.75rem;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 2rem;
-            color: #4a5568;
-            text-decoration: none;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-            position: relative;
-        }
-
-        .nav-item::before {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-top: 4px solid transparent;
-            border-bottom: 4px solid transparent;
-            border-right: 6px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item:hover {
-            background: linear-gradient(90deg, #edf2f7 0%, transparent 100%);
-            color: #2d3748;
-        }
-
-        .nav-item.active {
-            background: linear-gradient(90deg, rgba(128, 90, 213, 0.1) 0%, transparent 100%);
-            color: #805ad5;
-            border-left-color: #805ad5;
-            font-weight: 600;
-        }
-
-        .nav-item.active::before {
-            border-right-color: #805ad5;
-        }
-
-        .upgrade-cta {
-            margin: 2rem;
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            color: white;
-            border: none;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            width: calc(100% - 4rem);
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.2);
-        }
-
-        .upgrade-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(128, 90, 213, 0.3);
-        }
-
-        /* Enhanced Main Content */
-        .main-content {
-            margin-left: 260px;
-            padding: 3rem 4rem;
-            max-width: 1000px;
-        }
-
-        /* Progress Bar */
-        .progress-bar {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .progress-bar-title {
-            font-size: 0.875rem;
-            color: #718096;
-            margin-bottom: 0.75rem;
-        }
-
-        .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            position: relative;
-        }
-
-        .progress-step {
-            flex: 1;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-
-        .progress-step-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            margin: 0 auto 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.3s ease;
-        }
-
-        .progress-step.completed .progress-step-circle {
-            background: #48bb78;
-            color: white;
-        }
-
-        .progress-step.active .progress-step-circle {
-            background: #805ad5;
-            color: white;
-            box-shadow: 0 0 0 4px rgba(128, 90, 213, 0.2);
-        }
-
-        .progress-step-label {
-            font-size: 0.75rem;
-            color: #718096;
-        }
-
-        .progress-line {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #e2e8f0;
-            z-index: 0;
-        }
-
-        .progress-line-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #48bb78 0%, #805ad5 100%);
-            width: 25%;
-            transition: width 0.3s ease;
-        }
-
-        /* Enhanced Header */
-        .header {
-            margin-bottom: 3rem;
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #2d3748 0%, #805ad5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .intro-text {
-            font-size: 1.125rem;
-            color: #4a5568;
-            margin-bottom: 2rem;
-            line-height: 1.8;
-        }
-
-        .intro-text strong {
-            color: #2d3748;
-        }
-
-        .intro-text em {
-            color: #805ad5;
-            font-style: normal;
-            font-weight: 500;
-        }
-
-        /* Enhanced Gift Callout */
-        .gift-callout {
-            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-            border: 1px solid #e9d8fd;
-            border-radius: 16px;
-            padding: 2.5rem;
-            margin: 2rem 0;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.1);
-        }
-
-        .gift-callout::before {
-            content: '��';
-            font-size: 3rem;
-            position: absolute;
-            top: 1rem;
-            right: 1.5rem;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* Enhanced AI Guide */
-        .ai-guide {
-            background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 2.5rem;
-            margin: 2rem 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* Sticky AI Button */
-        .sticky-ai-button {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            color: white;
-            border: none;
-            padding: 1rem 1.5rem;
-            border-radius: 50px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .sticky-ai-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(128, 90, 213, 0.4);
-        }
-
-        .ai-guide::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(128, 90, 213, 0.05) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .ai-guide-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Enhanced AI Prompt Box */
-        .ai-prompt-box {
-            background: #1a202c;
-            color: #e2e8f0;
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 1rem 0;
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 0.875rem;
-            line-height: 1.6;
-            position: relative;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .ai-prompt-box::before {
-            content: 'AI Prompt';
-            position: absolute;
-            top: 0;
-            left: 0;
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            color: white;
-            padding: 0.5rem 1.5rem;
-            font-size: 0.75rem;
-            border-radius: 0 0 8px 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-weight: 600;
-        }
-
-        .copy-button {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: #4a5568;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .copy-button:hover {
-            background: #2d3748;
-            transform: translateY(-1px);
-        }
-
-        /* Enhanced Sections */
-        .section {
-            margin-bottom: 4rem;
-            position: relative;
-            animation: fadeInUp 0.6s ease-out;
-            animation-fill-mode: both;
-        }
-
-        .section:nth-child(2) { animation-delay: 0.1s; }
-        .section:nth-child(3) { animation-delay: 0.2s; }
-        .section:nth-child(4) { animation-delay: 0.3s; }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2rem;
-            position: relative;
-        }
-
-        .step-number {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1rem;
-            margin-right: 1rem;
-            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
-        }
-
-        .section-title {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        /* Enhanced Tier Indicators */
-        .tier-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
-            color: #2f855a;
-            padding: 0.375rem 1rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-left: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .tier-indicator.paid {
-            background: linear-gradient(135deg, #fffaf0 0%, #fed7aa 100%);
-            color: #c05621;
-        }
-
-        /* Enhanced Character Cards */
-        .character-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 2.5rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .character-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, #805ad5 0%, #6b46c1 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .character-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .character-card:hover::before {
-            opacity: 1;
-        }
-
-        /* Enhanced Form Elements */
-        .field-group {
-            margin-bottom: 2rem;
-        }
-
-        .field-label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .field-help {
-            font-size: 0.75rem;
-            color: #9ca3af;
-            margin-top: 0.25rem;
-        }
-
-        .field-input {
-            width: 100%;
-            padding: 0.875rem 1.25rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            background: white;
-            transition: all 0.2s ease;
-        }
-
-        .field-input:focus {
-            outline: none;
-            border-color: #805ad5;
-            box-shadow: 0 0 0 3px rgba(128, 90, 213, 0.1);
-        }
-
-        .field-textarea {
-            min-height: 140px;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        /* Enhanced Page Container */
-        .page-container {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2.5rem;
-            min-height: 350px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .page-container:hover {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .page-number {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: #805ad5;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        /* Enhanced Image Area */
-        .image-area {
-            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-            border: 2px dashed #cbd5e0;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .image-area:hover {
-            border-color: #805ad5;
-            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-            transform: scale(1.02);
-        }
-
-        .image-area.has-image {
-            border: none;
-        }
-
-        .uploaded-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        /* Enhanced Buttons */
-        .button {
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            color: white;
-            border: none;
-            padding: 0.875rem 1.75rem;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.2);
-        }
-
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(128, 90, 213, 0.3);
-        }
-
-        .button-secondary {
-            background: white;
-            color: #374151;
-            border: 2px solid #e5e7eb;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .button-secondary:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Story Templates Section */
-        .templates-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .template-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .template-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .template-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .template-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-        }
-
-        .template-description {
-            font-size: 0.875rem;
-            color: #718096;
-            line-height: 1.5;
-        }
-
-        /* AI Integration Features */
-        .ai-features {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: white;
-            border-radius: 16px;
-            padding: 3rem;
-            margin: 3rem 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ai-features::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(128, 90, 213, 0.2) 0%, transparent 70%);
-            animation: rotate 30s linear infinite;
-        }
-
-        .ai-features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .ai-feature {
-            text-align: center;
-        }
-
-        .ai-feature-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            display: block;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .ai-feature:nth-child(2) .ai-feature-icon { animation-delay: 0.5s; }
-        .ai-feature:nth-child(3) .ai-feature-icon { animation-delay: 1s; }
-
-        .ai-feature-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .ai-feature-description {
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
-
-        /* Export Options */
-        .export-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .export-option {
-            background: white;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .export-option:hover {
-            border-color: #805ad5;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .export-option-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .export-option-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-        }
-
-        .export-option-description {
-            font-size: 0.875rem;
-            color: #718096;
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                z-index: 1000;
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-                padding: 2rem 1.5rem;
-            }
-            
-            .form-grid,
-            .page-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .button-group {
-                flex-direction: column;
-            }
-            
-            .mobile-menu-button {
-                display: block;
-                position: fixed;
-                top: 1rem;
-                left: 1rem;
-                z-index: 1001;
-                background: white;
-                border: 1px solid #e2e8f0;
-                border-radius: 8px;
-                padding: 0.75rem;
-                cursor: pointer;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-        }
-
-        /* Hidden by default */
-        .mobile-menu-button {
-            display: none;
-        }
-
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #805ad5;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: #2d3748;
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        /* Tooltips */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #2d3748;
-            color: white;
-            text-align: center;
-            border-radius: 6px;
-            padding: 0.5rem 1rem;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.75rem;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JonguBooks - Story Creation for Mindful Parents</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #faf9f7;
+      color: #2d3748;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Enhanced Sidebar with Better Visual Hierarchy */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 260px;
+      height: 100vh;
+      background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
+      border-right: 1px solid #e2e8f0;
+      padding: 2rem 0;
+      overflow-y: auto;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .logo {
+      padding: 0 2rem 2rem 2rem;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo .sparkle {
+      animation: sparkle 2s ease-in-out infinite;
+    }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+
+    .logo p {
+      font-size: 0.875rem;
+      color: #718096;
+      font-style: italic;
+    }
+
+    .nav-section {
+      margin-bottom: 2rem;
+    }
+
+    .nav-title {
+      padding: 0 2rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #a0aec0;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 2rem;
+      color: #4a5568;
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: linear-gradient(90deg, #edf2f7 0%, transparent 100%);
+      color: #2d3748;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(128, 90, 213, 0.1) 0%, transparent 100%);
+      color: #805ad5;
+      border-left-color: #805ad5;
+      font-weight: 600;
+    }
+
+    .upgrade-cta {
+      margin: 2rem;
+      background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+      color: white;
+      border: none;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: calc(100% - 4rem);
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(128, 90, 213, 0.2);
+    }
+
+    .upgrade-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(128, 90, 213, 0.3);
+    }
+
+    /* Enhanced Main Content */
+    .main-content {
+      margin-left: 260px;
+      padding: 3rem 4rem;
+      max-width: 1000px;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 3rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .progress-bar-title {
+      font-size: 0.875rem;
+      color: #718096;
+      margin-bottom: 0.75rem;
+    }
+
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .progress-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .progress-step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      margin: 0 auto 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+    }
+
+    .progress-step.completed .progress-step-circle {
+      background: #48bb78;
+      color: white;
+    }
+
+    .progress-step.active .progress-step-circle {
+      background: #805ad5;
+      color: white;
+      box-shadow: 0 0 0 4px rgba(128, 90, 213, 0.2);
+    }
+
+    .progress-step-label {
+      font-size: 0.75rem;
+      color: #718096;
+    }
+
+    .progress-line {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #e2e8f0;
+      z-index: 0;
+    }
+
+    .progress-line-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #48bb78 0%, #805ad5 100%);
+      width: 25%;
+      transition: width 0.3s ease;
+    }
+
+    /* Enhanced Header */
+    .header {
+      margin-bottom: 3rem;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #2d3748 0%, #805ad5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .intro-text, .text-lg {
+      font-size: 1.125rem;
+      color: #4a5568;
+      margin-bottom: 2rem;
+      line-height: 1.8;
+    }
+
+    .intro-text strong {
+      color: #2d3748;
+    }
+
+    .intro-text em {
+      color: #805ad5;
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    /* Enhanced Gift Callout */
+    .gift-callout {
+      background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+      border: 1px solid #e9d8fd;
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin: 2rem 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(128, 90, 213, 0.1);
+    }
+
+    .gift-callout::before {
+      content: '🎁';
+      font-size: 3rem;
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    /* Sticky AI Button */
+    .sticky-ai-button {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+      color: white;
+      border: none;
+      padding: 1rem 1.5rem;
+      border-radius: 50px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .sticky-ai-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(128, 90, 213, 0.4);
+    }
+    
+    /* Enhanced Sections */
+    .section {
+      margin-bottom: 4rem;
+      position: relative;
+      padding-top: 2rem; /* padding for scroll spy */
+      margin-top: -2rem; /* offset for padding */
+      animation: fadeInUp 0.6s ease-out;
+      animation-fill-mode: both;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-right: 1rem;
+      box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    /* Enhanced Character Cards */
+    .character-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .character-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #805ad5 0%, #6b46c1 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .character-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .character-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Enhanced Form Elements */
+    .field-group {
+      margin-bottom: 2rem;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 0.875rem 1.25rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      background: white;
+      transition: all 0.2s ease;
+    }
+
+    .field-input:focus {
+      outline: none;
+      border-color: #805ad5;
+      box-shadow: 0 0 0 3px rgba(128, 90, 213, 0.1);
+    }
+
+    .field-textarea {
+      min-height: 140px;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .add-button {
+        background: transparent;
+        border: 2px dashed #cbd5e0;
+        color: #4a5568;
+        padding: 1rem;
+        border-radius: 12px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 600;
+    }
+
+    .add-button:hover {
+        border-color: #805ad5;
+        background: #faf5ff;
+    }
+
+    /* Enhanced Page Container */
+    .page-container {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      min-height: 350px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .page-container:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-number {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: #805ad5;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    /* Enhanced Image Area */
+    .image-area {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      border: 2px dashed #cbd5e0;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .image-area:hover {
+      border-color: #805ad5;
+      background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+      transform: scale(1.02);
+    }
+
+    .image-area.has-image {
+      border: none;
+    }
+
+    .uploaded-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    /* Enhanced Buttons */
+    .button {
+      background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+      color: white;
+      border: none;
+      padding: 0.875rem 1.75rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 12px rgba(128, 90, 213, 0.2);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(128, 90, 213, 0.3);
+    }
+
+    .button-secondary {
+      background: white;
+      color: #374151;
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .button-secondary:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Export Options */
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .export-option {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .export-option:hover {
+      border-color: #805ad5;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .export-option-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .export-option-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 0.5rem;
+    }
+
+    .export-option-description {
+      font-size: 0.875rem;
+      color: #718096;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+      
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+        padding: 2rem 1.5rem;
+      }
+      
+      .form-grid,
+      .page-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .mobile-menu-button {
+        display: block;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.75rem;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    /* Hidden by default */
+    .mobile-menu-button {
+      display: none;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #2d3748;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
 </head>
 <body>
-    <!-- Mobile Menu Button -->
-    <button class="mobile-menu-button" onclick="toggleSidebar()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12h18M3 6h18M3 18h18"></path>
-        </svg>
-    </button>
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-button" onclick="toggleSidebar()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 12h18M3 6h18M3 18h18"></path>
+    </svg>
+  </button>
 
-    <!-- Enhanced Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="logo">
-            <h1><span class="sparkle">📖</span> JonguBooks</h1>
-            <p>Stories that shape souls.</p>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-title">Create</div>
-            <a href="#characters" class="nav-item active" onclick="setActiveSection('characters')">
-                <span>👥</span> Characters
-            </a>
-            <a href="#story" class="nav-item" onclick="setActiveSection('story')">
-                <span>📝</span> Story Foundation
-            </a>
-            <a href="#pages" class="nav-item" onclick="setActiveSection('pages')">
-                <span>📄</span> Pages & Layout
-            </a>
-            <a href="#illustrations" class="nav-item" onclick="setActiveSection('illustrations')">
-                <span>🎨</span> Illustrations
-            </a>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-title">Tools</div>
-            <a href="#templates" class="nav-item" onclick="setActiveSection('templates')">
-                <span>📚</span> Story Templates
-            </a>
-            <a href="#ai-guide" class="nav-item" onclick="setActiveSection('ai-guide')">
-                <span>��</span> AI Guidance
-            </a>
-            <a href="#export" class="nav-item" onclick="setActiveSection('export')">
-                <span>💾</span> Export Options
-            </a>
-            <a href="#library" class="nav-item" onclick="setActiveSection('library')">
-                <span>📖</span> My Library
-            </a>
-        </div>
-
-        <div class="nav-section">
-            <div class="nav-title">Community</div>
-            <a href="#share" class="nav-item" onclick="setActiveSection('share')">
-                <span>🌍</span> Share Stories
-            </a>
-            <a href="#feedback" class="nav-item" onclick="setActiveSection('feedback')">
-                <span>💬</span> Feedback
-            </a>
-        </div>
-
-        <button class="upgrade-cta" onclick="showUpgradeModal()">✨ Upgrade to AI-Powered</button>
+  <!-- Enhanced Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <h1><span class="sparkle">📖</span> JonguBooks</h1>
+      <p>Stories that shape souls.</p>
     </div>
 
-    <main class="main-content">
-        <!-- Progress Bar -->
-        <div class="progress-bar">
-            <div class="progress-bar-title">Your Story Journey</div>
-            <div class="progress-steps">
-                <div class="progress-line">
-                    <div class="progress-line-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-step active" data-step="characters">
-                    <div class="progress-step-circle">1</div>
-                    <div class="progress-step-label">Characters</div>
-                </div>
-                <div class="progress-step" data-step="story">
-                    <div class="progress-step-circle">2</div>
-                    <div class="progress-step-label">Story</div>
-                </div>
-                <div class="progress-step" data-step="pages">
-                    <div class="progress-step-circle">3</div>
-                    <div class="progress-step-label">Pages & Art</div>
-                </div>
-                <div class="progress-step" data-step="export">
-                    <div class="progress-step-circle">4</div>
-                    <div class="progress-step-label">Export</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Enhanced Header -->
-        <header class="header">
-            <h1>Create Your Own Children's Story</h1>
-            <p class="text-lg text-gray-600 leading-relaxed">
-                My <em><strong>PlayfulProcess</strong></em> journey into parenthood invites me to explore new ways of educating my children through stories. In a world where AI makes creation more accessible than ever, I've discovered something profound: <strong>it's often easier to build the exact story my child needs than to search for the perfect book that may not exist.</strong>
-            </p>
-            
-            <div class="gift-callout">
-                <p class="intro-text" style="margin-bottom: 1rem;">
-                    <strong>How it works:</strong> Free users can use our custom GPT+ assistant (link below) to generate story content, then paste it back here to create beautiful books. Paid members get instant AI generation directly within JonguBooks.
-                </p>
-                <p style="color: #718096; font-size: 0.95rem; margin-top: 1rem;">
-                    <strong>Not into AI? I get it!</strong> Some days I wake up feeling the same way. JonguBooks works beautifully as a pure creative tool - write your own stories, draw your own illustrations, or use photos. The AI is just an option, not a requirement. Your imagination is the only tool you truly need. 💚
-                </p>
-                <div class="button-group" style="justify-content: center; margin-top: 1.5rem;">
-                    <button class="button" onclick="window.open('https://chat.openai.com/g/your-gpt-id', '_blank')">
-                        🤖 Open JonguBooks GPT+ (Free)
-                    </button>
-                    <button class="button button-secondary" onclick="showUpgradeModal()">
-                        ✨ Upgrade for Integrated AI
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- All Steps in One Page -->
-        
-        <!-- Step 1: Characters -->
-        <section id="characters-section" class="section">
-            <div class="section-header">
-                <div class="step-number">1</div>
-                <h2 class="section-title">Define Your Characters</h2>
-            </div>
-            <p class="section-description">
-                Every meaningful story begins with characters that children can connect with.
-            </p>
-
-            <div id="charactersContainer">
-                <div class="character-card">
-                    <div class="field-group">
-                        <label class="field-label">Character Name</label>
-                        <input type="text" class="field-input" placeholder="e.g., Maya the Mindful Elephant" id="characterName1">
-                    </div>
-                    
-                    <div class="field-group">
-                        <label class="field-label">Character Purpose & Personality</label>
-                        <textarea class="field-input field-textarea" placeholder="What makes this character special? What wisdom do they carry?" id="characterPersonality1"></textarea>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div class="field-group">
-                            <label class="field-label">Character Type</label>
-                            <select class="field-input" id="characterType1">
-                                <option>Young child (learning and growing)</option>
-                                <option>Wise guide (mentor figure)</option>
-                                <option>Animal friend (playful companion)</option>
-                                <option>Magical being (wonder-bringer)</option>
-                                <option>Parent/adult (nurturing figure)</option>
-                            </select>
-                        </div>
-                        
-                        <div class="field-group">
-                            <label class="field-label">Visual Reference</label>
-                            <input type="file" class="field-input" accept="image/*" id="characterImage1">
-                        </div>
-                    </div>
-
-                    <div class="button-group">
-                        <button class="button button-secondary" onclick="generateWithAI('character', 1)">
-                            🤖 Generate with AI
-                        </button>
-                        <button class="button button-secondary" onclick="showWritingTips('character')">
-                            ✏️ Writing Tips
-                        </button>
-                        <button class="button button-secondary" onclick="saveCharacter(1)">💾 Save</button>
-                    </div>
-                </div>
-            </div>
-
-            <button class="add-button" onclick="addCharacter()">+ Add Another Character</button>
-        </section>
-
-        <!-- Step 2: Story Foundation -->
-        <section id="story-section" class="section">
-            <div class="section-header">
-                <div class="step-number">2</div>
-                <h2 class="section-title">Build Your Story Foundation</h2>
-            </div>
-            <p class="section-description">
-                Define the heart of your story - what lesson or experience you want to share.
-            </p>
-
-            <div class="field-group">
-                <label class="field-label">Story Title</label>
-                <input type="text" class="field-input" placeholder="Give your story a memorable title" id="storyTitle">
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">Core Message or Life Lesson</label>
-                <textarea class="field-input field-textarea" placeholder="What do you want your child to learn or feel?" id="coreMessage"></textarea>
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">Story Outline</label>
-                <textarea class="field-input field-textarea" style="min-height: 200px;" placeholder="Write or paste your story outline here..." id="storyOutline"></textarea>
-            </div>
-
-            <div class="form-grid">
-                <div class="field-group">
-                    <label class="field-label">Story Tone</label>
-                    <select class="field-input" id="storyTone">
-                        <option>Gentle & Nurturing</option>
-                        <option>Adventurous & Brave</option>
-                        <option>Joyful & Playful</option>
-                        <option>Wise & Teaching</option>
-                    </select>
-                </div>
-                
-                <div class="field-group">
-                    <label class="field-label">Target Age</label>
-                    <select class="field-input" id="targetAge">
-                        <option>2-4 years</option>
-                        <option>4-6 years</option>
-                        <option>6-8 years</option>
-                        <option>8-12 years</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <button class="button" onclick="generateWithAI('story')">🤖 Generate Story with AI</button>
-                <button class="button button-secondary" onclick="showWritingTips('story')">✏️ Story Writing Guide</button>
-                <button class="button button-secondary" onclick="formatIntoPages()">📖 Create Pages</button>
-            </div>
-        </section>
-
-        <!-- Step 3: Pages -->
-        <section id="pages-section" class="section">
-            <div class="section-header">
-                <div class="step-number">3</div>
-                <h2 class="section-title">Design Your Pages & Illustrations</h2>
-            </div>
-            <p class="section-description">
-                Break your story into pages with text and beautiful illustrations. Each page should capture a moment of your story.
-            </p>
-
-            <div id="pagesContainer">
-                <div class="page-container" style="position: relative;">
-                    <span class="page-number">1</span>
-                    <div class="image-area" onclick="uploadPageImage(this)">
-                        <div class="image-placeholder">
-                            <span class="image-placeholder-icon">🎨</span>
-                            Click to upload image
-                            <br><small>Or generate with AI</small>
-                        </div>
-                    </div>
-                    <div class="text-area">
-                        <textarea class="editable-text" placeholder="Enter your page text here..." id="pageText1"></textarea>
-                        <div class="button-group" style="margin-top: 1rem;">
-                            <button class="button button-secondary" onclick="generateWithAI('illustration', 1)">
-                                🎨 Generate with AI
-                            </button>
-                            <button class="button button-secondary" onclick="showDrawingTips()">
-                                ✏️ DIY Art Tips
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button class="add-button" onclick="addPage()">+ Add New Page</button>
-        </section>
-
-        <!-- Step 4: Review & Export -->
-        <section id="export-section" class="section">
-            <div class="section-header">
-                <div class="step-number">4</div>
-                <h2 class="section-title">Review & Export</h2>
-            </div>
-            <p class="section-description">
-                Preview your story and export it in your preferred format.
-            </p>
-
-            <div class="export-grid">
-                <div class="export-option" onclick="exportAs('pdf')">
-                    <span class="export-option-icon">📄</span>
-                    <h3 class="export-option-title">PDF Book</h3>
-                    <p class="export-option-description">Print-ready or digital reading</p>
-                </div>
-
-                <div class="export-option" onclick="exportAs('ebook')">
-                    <span class="export-option-icon">📱</span>
-                    <h3 class="export-option-title">eBook</h3>
-                    <p class="export-option-description">For tablets and e-readers</p>
-                </div>
-
-                <div class="export-option" onclick="exportAs('share')">
-                    <span class="export-option-icon">🌍</span>
-                    <h3 class="export-option-title">Share Online</h3>
-                    <p class="export-option-description">Get a shareable link</p>
-                </div>
-            </div>
-
-            <div class="button-group" style="justify-content: center; margin-top: 2rem;">
-                <button class="button" onclick="previewBook()">👁️ Preview Book</button>
-                <button class="button button-secondary" onclick="startNewStory()">📖 Create Another Story</button>
-            </div>
-        </section>
-    </main>
-
-    <!-- Sticky AI Assistant Button -->
-    <button class="sticky-ai-button" onclick="openAIAssistant()">
-        <span>🤖</span>
-        <span>AI Assistant</span>
-    </button>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">
-        <span id="toastMessage">Message here</span>
+    <div class="nav-section">
+      <div class="nav-title">Create</div>
+      <a href="#story-section" class="nav-item active" onclick="setActiveSection(event, 'story')">
+        <span>📝</span> Story Foundation
+      </a>
+      <a href="#characters-section" class="nav-item" onclick="setActiveSection(event, 'characters')">
+        <span>👥</span> Characters
+      </a>
+      <a href="#pages-section" class="nav-item" onclick="setActiveSection(event, 'pages')">
+        <span>📄</span> Pages & Layout
+      </a>
+      <a href="#export-section" class="nav-item" onclick="setActiveSection(event, 'export')">
+        <span>💾</span> Review & Export
+      </a>
+      <a href="#" class="nav-item" onclick="startOver(event)">
+        <span>🔄</span> Start Over
+      </a>
     </div>
 
-    <script>
-        // Global state
-        let currentSection = 'characters';
-        let storyData = {
-            characters: [],
-            title: '',
-            coreMessage: '',
-            outline: '',
-            tone: '',
-            targetAge: '',
-            pages: []
-        };
+    <button class="upgrade-cta" onclick="window.open('https://www.playfulprocess.com/the-nest-knows-best-bunny-coping-tricks/', '_blank')">✨ Upgrade to AI-Powered</button>
+  </div>
 
-        // Navigation and UI functions
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+  <main class="main-content">
+    <datalist id="character-types">
+      <option value="Young child (learning and growing)"></option>
+      <option value="Wise guide (mentor figure)"></option>
+      <option value="Animal friend (playful companion)"></option>
+      <option value="Magical being (wonder-bringer)"></option>
+      <option value="Parent/adult (nurturing figure)"></option>
+    </datalist>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-bar-title">Your Story Journey</div>
+      <div class="progress-steps">
+        <div class="progress-line">
+          <div class="progress-line-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-step active" data-step="story">
+          <div class="progress-step-circle">1</div>
+          <div class="progress-step-label">Story</div>
+        </div>
+        <div class="progress-step" data-step="characters">
+          <div class="progress-step-circle">2</div>
+          <div class="progress-step-label">Characters</div>
+        </div>
+        <div class="progress-step" data-step="pages">
+          <div class="progress-step-circle">3</div>
+          <div class="progress-step-label">Pages & Art</div>
+        </div>
+        <div class="progress-step" data-step="export">
+          <div class="progress-step-circle">4</div>
+          <div class="progress-step-label">Review & Export</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Header -->
+    <header class="header">
+      <h1>Create Your Own Children's Story</h1>
+      <p class="text-lg text-gray-600 leading-relaxed">
+        My <em><strong>PlayfulProcess</strong></em> journey into parenthood invites me to explore new ways of educating my children through stories. In a world where AI makes creation more accessible than ever, I've discovered something profound: <strong>it's often easier to build the exact story my child needs than to search for the perfect book that may not exist.</strong>
+      </p>
+      
+      <div class="gift-callout">
+        <p class="intro-text" style="margin-bottom: 1rem;">
+          <strong>How it works:</strong> Free users can use our custom GPT+ assistant (link below) to generate story content, then paste it back here to create beautiful books. Paid members get instant AI generation directly within JonguBooks.
+        </p>
+        <p style="color: #718096; font-size: 0.95rem; margin-top: 1rem;">
+          <strong>Not into AI? I get it!</strong> Some days I wake up feeling the same way. JonguBooks works beautifully as a pure creative tool - write your own stories, draw your own illustrations, or use photos. The AI is just an option, not a requirement. Your imagination is the only tool you truly need. 💚
+        </p>
+        <div class="button-group" style="justify-content: center; margin-top: 1.5rem;">
+          <button class="button" onclick="window.open('https://chatgpt.com/g/g-68582fc3c3f481919db280da20d31639-jongubooks-assistant', '_blank')">
+            🤖 Open JonguBooks GPT+ (Free)
+          </button>
+          <button class="button button-secondary" onclick="window.open('https://www.playfulprocess.com/the-nest-knows-best-bunny-coping-tricks/', '_blank')">
+            ✨ Upgrade for Integrated AI
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Step 1: Story Foundation -->
+    <section id="story-section" class="section">
+      <div class="section-header">
+        <div class="step-number">1</div>
+        <h2 class="section-title">Build Your Story Foundation</h2>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Story Title</label>
+        <input type="text" class="field-input" placeholder="Give your story a memorable title" id="storyTitle">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Core Message or Life Lesson</label>
+        <textarea class="field-input field-textarea" placeholder="What do you want your child to learn or feel?" id="coreMessage"></textarea>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Story Outline</label>
+        <textarea class="field-input field-textarea" style="min-height: 200px;" placeholder="Write or paste your story outline here..." id="storyOutline"></textarea>
+      </div>
+      <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="field-group">
+          <label class="field-label">Story Tone</label>
+          <select class="field-input" id="storyTone">
+            <option>Gentle & Nurturing</option>
+            <option>Adventurous & Brave</option>
+            <option>Joyful & Playful</option>
+            <option>Wise & Teaching</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Target Age</label>
+          <select class="field-input" id="targetAge">
+            <option>2-4 years</option>
+            <option>4-6 years</option>
+            <option>6-8 years</option>
+            <option>8-12 years</option>
+          </select>
+        </div>
+      </div>
+      <div class="button-group">
+        <button class="button button-secondary" onclick="formatIntoPages()">📖 Create Pages</button>
+      </div>
+    </section>
+
+    <!-- Step 2: Characters -->
+    <section id="characters-section" class="section">
+      <div class="section-header">
+        <div class="step-number">2</div>
+        <h2 class="section-title">Define Your Characters</h2>
+      </div>
+      <div id="charactersContainer">
+        <div class="character-card">
+          <div class="field-group">
+            <label class="field-label">Character Name</label>
+            <input type="text" class="field-input" placeholder="e.g., Maya the Mindful Elephant" id="characterName1">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Character Purpose & Personality</label>
+            <textarea class="field-input field-textarea" placeholder="What makes this character special? What wisdom do they carry?" id="characterPersonality1"></textarea>
+          </div>
+          <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="field-group">
+              <label class="field-label">Character Type</label>
+              <input type="text" list="character-types" class="field-input" id="characterType1" placeholder="Select or type a custom type">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Visual Reference</label>
+              <input type="file" class="field-input" accept="image/*" id="characterImage1">
+            </div>
+          </div>
+          <div class="button-group">
+            <button class="button button-secondary" onclick="saveCharacter(1)">💾 Save</button>
+          </div>
+        </div>
+      </div>
+      <button class="add-button" onclick="addCharacter()">+ Add Another Character</button>
+    </section>
+
+    <!-- Step 3: Pages & Layout -->
+    <section id="pages-section" class="section">
+      <div class="section-header">
+        <div class="step-number">3</div>
+        <h2 class="section-title">Design Your Pages</h2>
+      </div>
+      <div id="pagesContainer">
+        <div class="page-container" style="position: relative;">
+          <span class="page-number">1</span>
+          <div class="image-area" onclick="uploadPageImage(this)">
+            <span class="image-placeholder-icon">🎨</span>
+            Click to upload image
+          </div>
+          <div class="text-area">
+            <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText1"></textarea>
+            <div class="button-group" style="margin-top: 1rem;">
+              <button class="button button-secondary" onclick="savePage(1)">💾 Save Page</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="add-button" onclick="addPage()">+ Add New Page</button>
+    </section>
+
+    <!-- Step 4: Review & Export -->
+    <section id="export-section" class="section">
+      <div class="section-header">
+        <div class="step-number">4</div>
+        <h2 class="section-title">Review & Export</h2>
+      </div>
+      <p class="section-description">
+        Preview your story and export it in your preferred format.
+      </p>
+      <div class="export-grid">
+        <div class="export-option" onclick="exportAs('pdf')">
+          <span class="export-option-icon">📄</span>
+          <h3 class="export-option-title">PDF Book</h3>
+          <p class="export-option-description">Print-ready or digital reading</p>
+        </div>
+        <div class="export-option" onclick="exportAs('ebook')">
+          <span class="export-option-icon">📱</span>
+          <h3 class="export-option-title">eBook</h3>
+          <p class="export-option-description">For tablets and e-readers</p>
+        </div>
+        <div class="export-option" onclick="exportAs('share')">
+          <span class="export-option-icon">🌍</span>
+          <h3 class="export-option-title">Share Online</h3>
+          <p class="export-option-description">Get a shareable link</p>
+        </div>
+      </div>
+      <div class="button-group" style="justify-content: center; margin-top: 2rem;">
+        <button class="button" onclick="previewBook()">👁️ Preview Book</button>
+        <button class="button button-secondary" onclick="startNewStory()">📖 Create Another Story</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Sticky AI Assistant Button -->
+  <button class="sticky-ai-button" onclick="openAIAssistant()">
+    <span>🤖</span>
+    <span>AI Assistant</span>
+  </button>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <span id="toastMessage">Message here</span>
+  </div>
+
+  <script>
+    // Global state
+    let storyData = {
+      characters: [],
+      pages: []
+    };
+
+    // --- Navigation and UI functions ---
+    function setActiveSection(event, section) {
+      event.preventDefault(); // Stop the default anchor link behavior
+      
+      // Update navigation active class
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.currentTarget.classList.add('active');
+
+      // Scroll to the corresponding section
+      const sectionElement = document.getElementById(section + '-section');
+      if (sectionElement) {
+          sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // Update progress bar
+      updateProgress(section);
+
+      // Close sidebar on mobile
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    }
+
+    function updateProgress(section) {
+      const steps = ['story', 'characters', 'pages', 'export'];
+      const currentIndex = steps.indexOf(section);
+      
+      if (currentIndex === -1) return;
+      
+      const progressPercent = ((currentIndex) / (steps.length - 1)) * 100;
+      document.getElementById('progressFill').style.width = progressPercent + '%';
+      
+      document.querySelectorAll('.progress-step').forEach((step, index) => {
+        step.classList.remove('active', 'completed');
+        if (index < currentIndex) {
+          step.classList.add('completed');
+        } else if (index === currentIndex) {
+          step.classList.add('active');
+        }
+      });
+    }
+
+    // --- Toast Notification ---
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMessage').textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // --- Character management ---
+    let characterCount = 1;
+    function addCharacter() {
+      characterCount++;
+      const container = document.getElementById('charactersContainer');
+      const newCard = document.createElement('div');
+      newCard.className = 'character-card';
+      newCard.innerHTML = `
+        <div class="field-group">
+            <label class="field-label">Character Name</label>
+            <input type="text" class="field-input" placeholder="e.g., Leo the Brave Lion" id="characterName${characterCount}">
+        </div>
+        <div class="field-group">
+            <label class="field-label">Character Purpose & Personality</label>
+            <textarea class="field-input field-textarea" placeholder="What makes this character special?" id="characterPersonality${characterCount}"></textarea>
+        </div>
+        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="field-group">
+                <label class="field-label">Character Type</label>
+                <input type="text" list="character-types" class="field-input" id="characterType${characterCount}" placeholder="Select or type a custom type">
+            </div>
+            <div class="field-group">
+                <label class="field-label">Visual Reference</label>
+                <input type="file" class="field-input" accept="image/*" id="characterImage${characterCount}">
+            </div>
+        </div>
+        <div class="button-group">
+          <button class="button button-secondary" onclick="saveCharacter(${characterCount})">💾 Save</button>
+          <button class="button button-secondary" onclick="removeCharacter(this)">🗑️ Remove</button>
+        </div>
+      `;
+      container.appendChild(newCard);
+      showToast('New character card added!');
+    }
+
+    function removeCharacter(button) {
+      if (confirm('Are you sure you want to remove this character?')) {
+        button.closest('.character-card').remove();
+        showToast('Character removed');
+      }
+    }
+
+    function saveCharacter(id) {
+      const name = document.getElementById(`characterName${id}`).value;
+      const personality = document.getElementById(`characterPersonality${id}`).value;
+      const type = document.getElementById(`characterType${id}`).value;
+      
+      if (!name || !personality) {
+        showToast('Please fill in character name and personality');
+        return;
+      }
+      
+      const character = { id, name, personality, type };
+      const existingIndex = storyData.characters.findIndex(c => c.id === id);
+      
+      if (existingIndex > -1) {
+        storyData.characters[existingIndex] = character;
+      } else {
+        storyData.characters.push(character);
+      }
+      
+      console.log('Current story data:', storyData);
+      showToast(`Character "${name}" saved!`);
+    }
+
+    // --- Page management ---
+    let pageCount = 1;
+    function addPage() {
+      pageCount++;
+      const container = document.getElementById('pagesContainer');
+      const newPage = document.createElement('div');
+      newPage.className = 'page-container';
+      newPage.style.position = 'relative';
+      newPage.innerHTML = `
+        <span class="page-number">${pageCount}</span>
+        <div class="image-area" onclick="uploadPageImage(this)">
+          <span class="image-placeholder-icon">🎨</span>
+          Click to upload image
+        </div>
+        <div class="text-area">
+          <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText${pageCount}"></textarea>
+          <div class="button-group" style="margin-top: 1rem;">
+            <button class="button button-secondary" onclick="savePage(${pageCount})">💾 Save Page</button>
+            <button class="button button-secondary" onclick="removePage(this)">🗑️ Remove Page</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(newPage);
+      showToast('New page added!');
+    }
+
+    function removePage(button) {
+        if(confirm('Are you sure you want to remove this page?')) {
+            button.closest('.page-container').remove();
+            showToast('Page removed');
+        }
+    }
+
+    function uploadPageImage(imageArea) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = function(e) {
+        if (e.target.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            imageArea.innerHTML = `<img src="${e.target.result}" class="uploaded-image" alt="Page illustration">`;
+            imageArea.classList.add('has-image');
+          };
+          reader.readAsDataURL(e.target.files[0]);
+        }
+      };
+      input.click();
+    }
+    
+    function savePage(id) {
+        const text = document.getElementById(`pageText${id}`).value;
+        if(!text) {
+            showToast('Please add text to the page before saving.');
+            return;
         }
 
-        function setActiveSection(section) {
-            // Update navigation
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            // Hide all sections
-            document.querySelectorAll('.section, #ai-guide-section, #templates').forEach(sec => {
-                sec.style.display = 'none';
-            });
-
-            // Show selected section
-            if (section === 'ai-guide') {
-                document.getElementById('ai-guide-section').style.display = 'block';
-            } else if (section === 'templates') {
-                document.getElementById('templates').style.display = 'block';
-            } else {
-                const sectionElement = document.getElementById(section + '-section');
-                if (sectionElement) {
-                    sectionElement.style.display = 'block';
-                }
-            }
-
-            // Update progress bar
-            updateProgress(section);
-            currentSection = section;
-
-            // Close sidebar on mobile
-            if (window.innerWidth <= 768) {
-                document.getElementById('sidebar').classList.remove('open');
-            }
-        }
-
-        function updateProgress(section) {
-            const steps = ['characters', 'story', 'pages', 'export'];
-            const currentIndex = steps.indexOf(section);
-            
-            if (currentIndex === -1) return;
-            
-            const progressPercent = ((currentIndex + 1) / steps.length) * 100;
-            document.getElementById('progressFill').style.width = progressPercent + '%';
-            
-            // Update step states
-            document.querySelectorAll('.progress-step').forEach((step, index) => {
-                step.classList.remove('active', 'completed');
-                if (index < currentIndex) {
-                    step.classList.add('completed');
-                } else if (index === currentIndex) {
-                    step.classList.add('active');
-                }
-            });
-        }
-
-        // Copy to clipboard function
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                const button = event.target;
-                const originalContent = button.innerHTML;
-                button.innerHTML = '✅ Copied!';
-                showToast('Prompt copied to clipboard!');
-                setTimeout(() => {
-                    button.innerHTML = originalContent;
-                }, 2000);
-            });
-        }
-
-        // Show toast notification
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        // AI Prompt handling
-        function showAIPrompt(type) {
-            const prompts = ['story', 'character', 'illustration', 'lesson'];
-            prompts.forEach(prompt => {
-                const element = document.getElementById(prompt + '-prompt');
-                if (element) {
-                    element.style.display = prompt === type ? 'block' : 'none';
-                }
-            });
-        }
-
-        // Character management
-        let characterCount = 1;
-        
-        function addCharacter() {
-            characterCount++;
-            const container = document.getElementById('charactersContainer');
-            const newCard = document.createElement('div');
-            newCard.className = 'character-card';
-            newCard.style.animationDelay = '0.1s';
-            newCard.innerHTML = `
-                <div class="field-group">
-                    <label class="field-label">Character Name</label>
-                    <input type="text" class="field-input" placeholder="e.g., Maya the Mindful Elephant" id="characterName${characterCount}">
-                    <span class="field-help">Choose a name that's easy to pronounce and remember</span>
-                </div>
-                
-                <div class="field-group">
-                    <label class="field-label">Character Purpose & Personality</label>
-                    <textarea class="field-input field-textarea" placeholder="What makes this character special? What wisdom do they carry? How do they help others grow? Describe their personality, dreams, and role in your story..." id="characterPersonality${characterCount}"></textarea>
-                    <span class="field-help">Think about what lessons this character will help teach</span>
-                </div>
-                
-                <div class="form-grid">
-                    <div class="field-group">
-                        <label class="field-label">Character's Age/Type</label>
-                        <select class="field-input" id="characterType${characterCount}">
-                            <option>Young child (learning and growing)</option>
-                            <option>Wise guide (mentor figure)</option>
-                            <option>Animal friend (playful companion)</option>
-                            <option>Magical being (wonder-bringer)</option>
-                            <option>Parent/adult (nurturing figure)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="field-group">
-                        <label class="field-label">Reference Image 
-                            <span class="tooltip">ℹ️
-                                <span class="tooltiptext">Upload an image or use AI to generate one</span>
-                            </span>
-                        </label>
-                        <input type="file" class="field-input" accept="image/*" id="characterImage${characterCount}">
-                    </div>
-                </div>
-
-                <div class="button-group">
-                    <button class="button button-secondary" onclick="showAIPrompt('character')">💡 Get AI Help</button>
-                    <button class="button button-secondary" onclick="saveCharacter(${characterCount})">💾 Save Character</button>
-                    <button class="button button-secondary" onclick="removeCharacter(this)">🗑️ Remove</button>
-                </div>
-            `;
-            container.insertBefore(newCard, container.lastElementChild);
-            showToast('New character added!');
-        }
-
-        function removeCharacter(button) {
-            if (confirm('Are you sure you want to remove this character?')) {
-                button.closest('.character-card').remove();
-                showToast('Character removed');
-            }
-        }
-
-        function saveCharacter(id) {
-            const name = document.getElementById(`characterName${id}`).value;
-            const personality = document.getElementById(`characterPersonality${id}`).value;
-            const type = document.getElementById(`characterType${id}`).value;
-            
-            if (!name || !personality) {
-                showToast('Please fill in character name and personality');
-                return;
-            }
-            
-            const character = { id, name, personality, type };
-            const existingIndex = storyData.characters.findIndex(c => c.id === id);
-            
-            if (existingIndex > -1) {
-                storyData.characters[existingIndex] = character;
-            } else {
-                storyData.characters.push(character);
-            }
-            
-            showToast('Character saved!');
-        }
-
-        // Page management
-        let pageCount = 1;
-        
-        function addPage() {
-            pageCount++;
-            const container = document.getElementById('pagesContainer');
-            const newPage = document.createElement('div');
-            newPage.className = 'page-container';
-            newPage.style.position = 'relative';
-            newPage.innerHTML = `
-                <span class="page-number">${pageCount}</span>
-                <div class="image-area" onclick="uploadPageImage(this)">
-                    <div class="image-placeholder">
-                        <span class="image-placeholder-icon">🎨</span>
-                        Click to upload image
-                        <br><small>Or use AI to generate</small>
-                    </div>
-                </div>
-                <div class="text-area">
-                    <textarea class="editable-text" placeholder="Enter your page text here..." id="pageText${pageCount}"></textarea>
-                    <div class="button-group" style="margin-top: 1rem;">
-                        <button class="button button-secondary" onclick="generateImagePrompt(${pageCount})">🎨 Get Image Prompt</button>
-                        <button class="button button-secondary" onclick="savePage(${pageCount})">💾 Save Page</button>
-                    </div>
-                </div>
-            `;
-            container.insertBefore(newPage, container.lastElementChild);
-            showToast('New page added!');
-        }
-
-        function uploadPageImage(imageArea) {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = function(e) {
-                if (e.target.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imageArea.innerHTML = `<img src="${e.target.result}" class="uploaded-image" alt="Page illustration">`;
-                        imageArea.classList.add('has-image');
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
-                }
-            };
-            input.click();
-        }
-
-        function generateImagePrompt(pageNum) {
-            const pageText = document.getElementById(`pageText${pageNum}`).value;
-            if (!pageText) {
-                showToast('Please add page text first');
-                return;
-            }
-            
-            // This would normally call an AI service
-            showToast('Opening AI prompt helper...');
-        }
-
-        function savePage(pageNum) {
-            const pageText = document.getElementById(`pageText${pageNum}`).value;
-            if (!pageText) {
-                showToast('Please add page text first');
-                return;
-            }
-            
-            const page = { id: Date.now().toString(), page_number: pageNum, text: pageText };
+        const page = { id, text };
+        const existingIndex = storyData.pages.findIndex(p => p.id === id);
+        if (existingIndex > -1) {
+            storyData.pages[existingIndex] = page;
+        } else {
             storyData.pages.push(page);
-            showToast('Page saved!');
         }
+        console.log('Current story data:', storyData);
+        showToast(`Page ${id} saved!`);
+    }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load stories on page load
-            loadStories();
-        });
-    </script>
+    function startOver(event) {
+      event.preventDefault();
+      if (confirm('Are you sure you want to start over? This will erase all your progress.')) {
+        // Reset data
+        storyData = { characters: [], pages: [] };
+        characterCount = 1;
+        pageCount = 1;
+
+        // Reset Story Foundation fields
+        document.getElementById('storyTitle').value = '';
+        document.getElementById('coreMessage').value = '';
+        document.getElementById('storyOutline').value = '';
+        document.getElementById('storyTone').selectedIndex = 0;
+        document.getElementById('targetAge').selectedIndex = 0;
+
+        // Reset Characters section to its initial state
+        const charactersContainer = document.getElementById('charactersContainer');
+        charactersContainer.innerHTML = `
+          <div class="character-card">
+            <div class="field-group">
+              <label class="field-label">Character Name</label>
+              <input type="text" class="field-input" placeholder="e.g., Maya the Mindful Elephant" id="characterName1">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Character Purpose & Personality</label>
+              <textarea class="field-input field-textarea" placeholder="What makes this character special? What wisdom do they carry?" id="characterPersonality1"></textarea>
+            </div>
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="field-group">
+                <label class="field-label">Character Type</label>
+                <input type="text" list="character-types" class="field-input" id="characterType1" placeholder="Select or type a custom type">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Visual Reference</label>
+                <input type="file" class="field-input" accept="image/*" id="characterImage1">
+              </div>
+            </div>
+            <div class="button-group">
+              <button class="button button-secondary" onclick="saveCharacter(1)">💾 Save</button>
+            </div>
+          </div>
+        `;
+
+        // Reset Pages section to its initial state
+        const pagesContainer = document.getElementById('pagesContainer');
+        pagesContainer.innerHTML = `
+          <div class="page-container" style="position: relative;">
+            <span class="page-number">1</span>
+            <div class="image-area" onclick="uploadPageImage(this)">
+              <span class="image-placeholder-icon">🎨</span>
+              Click to upload image
+            </div>
+            <div class="text-area">
+              <textarea class="field-input field-textarea" placeholder="Enter your page text here..." id="pageText1"></textarea>
+              <div class="button-group" style="margin-top: 1rem;">
+                <button class="button button-secondary" onclick="savePage(1)">💾 Save Page</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Reset navigation to the first step
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        const firstNavItem = document.querySelector('.nav-item[href="#story-section"]');
+        if (firstNavItem) {
+          firstNavItem.classList.add('active');
+          firstNavItem.click()
+        }
+        updateProgress('story');
+
+        showToast('Project cleared. Ready for a new story!');
+      }
+    }
+  </script>
 </body>
-</html> 
+</html>
