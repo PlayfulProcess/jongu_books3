@@ -81,6 +81,13 @@ class Story(BaseModel):
     status: str = "draft"
     author: Optional[str] = "Anonymous"
 
+class PageTextGenerationRequest(BaseModel):
+    story_title: str
+    core_message: str
+    page_number: int
+    total_pages: Optional[int]
+    previous_text: Optional[str] = None
+
 # In-memory storage (replace with PostgreSQL later)
 stories = {}
 # Create a dummy story for development
@@ -201,6 +208,54 @@ async def gpt_generate_characters(req: StoryGenerationRequest):
     except Exception as e:
         print(f"Error calling OpenAI: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate characters: {e}")
+
+@app.post("/api/gpt/generate_page_text")
+async def gpt_generate_page_text(req: PageTextGenerationRequest):
+    """Generate text for a specific story page using AI"""
+    if not openai.api_key:
+        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+
+    try:
+        # Construct a more detailed prompt
+        prompt_context = [
+            f"Story Title: \"{req.story_title}\"",
+            f"Core Message: \"{req.core_message}\"",
+            f"This is for page {req.page_number} of roughly {req.total_pages or '12'} pages."
+        ]
+        if req.previous_text:
+            prompt_context.append(f"The text of the previous page was: \"{req.previous_text}\"")
+
+        prompt = f"""
+        You are a gentle and creative author of children's books.
+        Based on the following story details, write the text for the current page.
+        Keep the language simple, engaging, and appropriate for a young child (4-6 years old).
+        The text should be a short paragraph, around 2-4 sentences.
+
+        Context:
+        - {" ".join(prompt_context)}
+
+        Generate only the text for the current page.
+        """
+
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a creative assistant for writing children's books."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.8,
+        )
+        
+        page_text = response.choices[0].message.content.strip()
+
+        return {
+            "success": True,
+            "data": {"text": page_text}
+        }
+
+    except Exception as e:
+        print(f"Error calling OpenAI for page text: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate page text: {e}")
 
 @app.post("/api/gpt/generate_story_foundation")
 async def gpt_generate_story_foundation(req: StoryFoundationRequest):

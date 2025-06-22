@@ -1367,7 +1367,59 @@
     }
 
     async function generatePageText(button) {
-      showToast("AI text generation for pages coming soon!");
+      const pageContainer = button.closest('.page-container');
+      const pageTextarea = pageContainer.querySelector('textarea[id^="pageText"]');
+      const pageNumber = parseInt(pageContainer.querySelector('.page-number').textContent);
+      
+      let previousPageText = '';
+      if (pageNumber > 1) {
+        const prevPageContainer = pageContainer.previousElementSibling;
+        if (prevPageContainer && prevPageContainer.classList.contains('page-container')) {
+            const prevTextarea = prevPageContainer.querySelector('textarea[id^="pageText"]');
+            if (prevTextarea) {
+                previousPageText = prevTextarea.value;
+            }
+        }
+      }
+
+      const requestBody = {
+        story_title: document.getElementById('storyTitle').value,
+        core_message: document.getElementById('coreMessage').value,
+        page_number: pageNumber,
+        total_pages: parseInt(document.getElementById('totalPages').value) || 12,
+        previous_text: previousPageText,
+      };
+
+      if (!requestBody.story_title || !requestBody.core_message) {
+        showToast('Please provide a title and core message in Step 1 first.');
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = '📝 Writing...';
+
+      try {
+        const response = await fetch('/api/gpt/generate_page_text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+        const result = await response.json();
+
+        if (result.success && result.data.text) {
+          pageTextarea.value = result.data.text;
+          showToast(`Page ${pageNumber} text generated!`);
+        } else {
+          throw new Error(result.detail || 'Failed to generate page text.');
+        }
+
+      } catch (error) {
+        console.error('Error generating page text:', error);
+        showToast('Error: Could not generate page text.');
+      } finally {
+        button.disabled = false;
+        button.textContent = '📝 Use AI to Create Text';
+      }
     }
 
     function previewBook() {
