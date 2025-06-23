@@ -451,22 +451,6 @@ async def gpt_generate_all_pages(req: AllPagesGenerationRequest):
         
         pages = json.loads(pages_json)
 
-        # Generate images for each page
-        for page in pages:
-            try:
-                image_response = openai.images.generate(
-                    model="dall-e-3",
-                    prompt=f"A cute, simple, and colorful children's book illustration of: {page['illustration_prompt']}. The style should be gentle and heartwarming, suitable for young children, with soft colors and clean lines.",
-                    n=1,
-                    size="1024x1024",
-                    response_format="url"
-                )
-                page['illustration_url'] = image_response.data[0].url
-                print(f"Generated image for page {page['page_number']}")
-            except Exception as e:
-                print(f"Failed to generate image for page {page['page_number']}: {e}")
-                page['illustration_url'] = None
-
         return {
             "success": True,
             "data": pages
@@ -574,6 +558,7 @@ async def gpt_generate_story_foundation(req: StoryFoundationRequest):
 
 @app.post("/api/gpt/generate_image")
 async def gpt_generate_image(req: ImageGenerationRequest):
+    print("DALL-E image generation requested: /api/gpt/generate_image")
     """Generate an image using DALL-E"""
     if not openai.api_key:
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
@@ -731,6 +716,7 @@ async def export_pdf(story_id: str):
 
 @app.post("/api/gpt/generate_page_image")
 async def gpt_generate_page_image(req: PageImageGenerationRequest):
+    print(f"DALL-E image generation requested: /api/gpt/generate_page_image for page {req.page_number}")
     """Generate an image for a specific story page using DALL-E and full story context, referencing character and adjacent page images if available."""
     if not openai.api_key:
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
