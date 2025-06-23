@@ -35,5 +35,11 @@
 - [x] Frontend `getStoryContext()` function gathers all user input
 - [x] All major AI functions now have richer, context-aware generation
 
+## 🎨 Sidebar UI Improvements
+- [ ] Implement DALL-E Gen ID workflow for character consistency (request Gen ID after character creation, use it in subsequent prompts)
+- [ ] Research and possibly implement other DALL-E character consistency techniques (reference images, grid prompts, seed/variation, etc)
+- [ ] Sidebar UI: Use the same font as the main website, and replace sidebar icons with purple step circles (matching the main content step style)
+- [ ] Continue polishing sidebar spacing, alignment, and hover/active states for a modern, unified look
+
 ---
 Add more tasks as needed! 
