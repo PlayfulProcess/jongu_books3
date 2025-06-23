@@ -1061,22 +1061,9 @@
       <p class="section-description">
         Preview your story and export it in your preferred format.
       </p>
-      <div class="export-grid">
-        <div class="export-option" onclick="exportAs('pdf')">
-          <span class="export-option-icon">📄</span>
-          <h3 class="export-option-title">PDF Book</h3>
-          <p class="export-option-description">Print-ready or digital reading</p>
-        </div>
-        <div class="export-option" onclick="exportAs('ebook')">
-          <span class="export-option-icon">📱</span>
-          <h3 class="export-option-title">eBook</h3>
-          <p class="export-option-description">For tablets and e-readers</p>
-        </div>
-        <div class="export-option" onclick="exportAs('share')">
-          <span class="export-option-icon">🌍</span>
-          <h3 class="export-option-title">Share Online</h3>
-          <p class="export-option-description">Get a shareable link</p>
-        </div>
+      <div style="margin: 2rem 0; padding: 1.5rem; background: #f9fafb; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+        <strong>To save your work:</strong> Use the <b>Preview Book</b> button below, then print the preview page as a PDF using your browser's print dialog.<br><br>
+        <span style="color: #805ad5;">We are working on better saving and export capabilities soon!</span>
       </div>
       <div class="button-group" style="justify-content: center; margin-top: 2rem;">
         <button class="button" onclick="previewBook()">👁️ Preview Book</button>
@@ -1267,11 +1254,17 @@
     async function generateCharacterImage(button) {
       const card = button.closest('.character-card');
       const visualDescriptionInput = card.querySelector('textarea[id^="characterVisualDescription"]');
-      const prompt = visualDescriptionInput.value;
+      let prompt = visualDescriptionInput.value.trim();
 
       if (!prompt) {
-          showToast('Please provide a visual description for the AI first.');
-          return;
+        // Try to auto-generate a prompt from story foundation and character info
+        const storyTitle = document.getElementById('storyTitle').value.trim();
+        const coreMessage = document.getElementById('coreMessage').value.trim();
+        const characterName = card.querySelector('input[id^="characterName"]').value.trim();
+        const characterPersonality = card.querySelector('textarea[id^="characterPersonality"]').value.trim();
+        prompt = `A children's book character illustration. Name: ${characterName || 'Unnamed Character'}. Personality: ${characterPersonality || 'unique and friendly'}. Story: ${storyTitle ? storyTitle + '. ' : ''}${coreMessage}`;
+        visualDescriptionInput.value = prompt;
+        showToast('No visual description provided. Using an AI-generated prompt based on your story and character.');
       }
 
       button.disabled = true;
