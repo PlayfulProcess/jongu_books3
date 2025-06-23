@@ -559,14 +559,32 @@ async def gpt_generate_story_foundation(req: StoryFoundationRequest):
 @app.post("/api/gpt/generate_image")
 async def gpt_generate_image(req: ImageGenerationRequest):
     print("DALL-E image generation requested: /api/gpt/generate_image")
-    """Generate an image using DALL-E"""
+    """Generate a simple character image using DALL-E, with story context if available."""
     if not openai.api_key:
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
 
     try:
+        # If story context is present, include it in the prompt for better continuity
+        story_context = getattr(req, "story_context", None)
+        context_str = ""
+        if story_context:
+            context_str = f" Story context: {json.dumps(story_context, ensure_ascii=False)}"
+
+        prompt = (
+            "A simple, full-body character illustration for kids. "
+            f"Character description: {req.prompt}.{context_str} "
+            "No background, plain white background. "
+            "Do not include any text, writing, letters, numbers, or symbols anywhere in the image. "
+            "No objects, no scenery, no borders, no frames. "
+            "Only the character, centered, with a lot of empty white space around them. "
+            "The character should be small and occupy only the center of the image, with plenty of white space. "
+            "Style: gentle, heartwarming, soft colors, clean lines, suitable for young children. "
+            "Centered, easy to use as a reference for other images."
+        )
+
         response = openai.images.generate(
             model="dall-e-3",
-            prompt=f"A cute, simple, and colorful children's book illustration of: {req.prompt}. The style should be gentle and heartwarming, suitable for young children, with soft colors and clean lines.",
+            prompt=prompt,
             n=1,
             size="1024x1024",
             response_format="url"
@@ -717,61 +735,20 @@ async def export_pdf(story_id: str):
 @app.post("/api/gpt/generate_page_image")
 async def gpt_generate_page_image(req: PageImageGenerationRequest):
     print(f"DALL-E image generation requested: /api/gpt/generate_page_image for page {req.page_number}")
-    """Generate an image for a specific story page using DALL-E and full story context, referencing character and adjacent page images if available."""
     if not openai.api_key:
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
 
     ctx = req.story_context
-    page_number = req.page_number
     try:
-        # Find the page info
-        page = None
-        if ctx.get('pages') and 1 <= page_number <= len(ctx['pages']):
-            page = ctx['pages'][page_number - 1]
-        # Find previous and next pages
-        prev_page = ctx['pages'][page_number - 2] if ctx.get('pages') and page_number > 1 else None
-        next_page = ctx['pages'][page_number] if ctx.get('pages') and page_number < len(ctx['pages']) else None
-        # Build a rich prompt
-        prompt_parts = []
-        if ctx.get('title'):
-            prompt_parts.append(f"Story Title: '{ctx['title']}'")
-        if ctx.get('coreMessage'):
-            prompt_parts.append(f"Core Message: '{ctx['coreMessage']}'")
-        if ctx.get('storyTone'):
-            prompt_parts.append(f"Tone: {ctx['storyTone']}")
-        if ctx.get('targetAge'):
-            prompt_parts.append(f"Target Age: {ctx['targetAge']}")
-        # Character image references
-        mentioned_chars = set()
-        char_images = {}
-        if page:
-            # Find character names in text and illustrationPrompt
-            text = (page.get('text') or '') + ' ' + (page.get('illustrationPrompt') or '')
-            for char in ctx.get('characters', []):
-                name = char.get('name', '').strip()
-                if name and re.search(rf'\b{name}\b', text, re.IGNORECASE):
-                    mentioned_chars.add(name)
-                    if char.get('imageUrl'):
-                        char_images[name] = char['imageUrl']
-        if mentioned_chars:
-            for name in mentioned_chars:
-                if char_images.get(name):
-                    prompt_parts.append(f"Use the same style and appearance as the image for {name} (see: {char_images[name]}).")
-        # Reference previous/next page images
-        if prev_page and prev_page.get('imageUrl'):
-            prompt_parts.append(f"The previous page's image shows: {prev_page.get('illustrationPrompt', '')}. (see: {prev_page['imageUrl']})")
-        if next_page and next_page.get('imageUrl'):
-            prompt_parts.append(f"The next page's image shows: {next_page.get('illustrationPrompt', '')}. (see: {next_page['imageUrl']})")
-        # Add page-specific info
-        if page:
-            if page.get('illustrationPrompt'):
-                prompt_parts.append(f"Page illustration prompt: {page['illustrationPrompt']}")
-            if page.get('text'):
-                prompt_parts.append(f"Page text: {page['text']}")
-            prompt_parts.append(f"This is for page {page_number} of the story.")
-        else:
-            prompt_parts.append(f"This is for page {page_number} of the story.")
-        prompt = f"A cute, simple, and colorful children's book illustration. {' '.join(prompt_parts)} The style should be gentle and heartwarming, suitable for young children, with soft colors and clean lines."
+        context_str = json.dumps(ctx, ensure_ascii=False)
+        prompt = (
+            "Children's illustration. "
+            f"Full story context: {context_str} "
+            "Style: gentle, heartwarming, soft colors, clean lines, suitable for young children. "
+            "No text, no writing, no letters, no words, no captions, no signs, no labels. "
+            "Keep character appearance and style consistent with previous illustrations."
+        )
+
         response = openai.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -787,7 +764,7 @@ async def gpt_generate_page_image(req: PageImageGenerationRequest):
     except Exception as e:
         print(f"Error generating page image: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate page image: {e}")
-
+    
 # Health check
 @app.get("/health")
 async def health_check():
