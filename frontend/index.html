@@ -1693,17 +1693,10 @@
       button.textContent = '🤖 Thinking...';
 
       try {
-        const storyDetails = {
-          title: document.getElementById('storyTitle').value,
-          coreMessage: document.getElementById('coreMessage').value,
-          age: document.getElementById('targetAge').value,
-          tone: document.getElementById('storyTone').value
-        };
-
         const response = await fetch('/api/gpt/generate_story_foundation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(storyDetails)
+          body: JSON.stringify({ story_context: getStoryContext() })
         });
 
         const result = await response.json();
@@ -1725,6 +1718,41 @@
         button.disabled = false;
         button.textContent = '🤖 Use AI to Complete Story Foundation';
       }
+    }
+
+    // --- Story Context Object and Gather Function ---
+    function getStoryContext() {
+      // Gather story foundation
+      const storyContext = {
+        title: document.getElementById('storyTitle').value.trim(),
+        coreMessage: document.getElementById('coreMessage').value.trim(),
+        outline: document.getElementById('storyOutline')?.value.trim() || '',
+        totalWords: document.getElementById('totalWords')?.value.trim() || '',
+        totalPages: document.getElementById('totalPages')?.value.trim() || '',
+        storyTone: document.getElementById('storyTone')?.value || '',
+        targetAge: document.getElementById('targetAge')?.value || '',
+        characters: [],
+        pages: []
+      };
+      // Gather characters
+      document.querySelectorAll('#charactersContainer .character-card').forEach(card => {
+        storyContext.characters.push({
+          name: card.querySelector('input[id^="characterName"]').value.trim(),
+          personality: card.querySelector('textarea[id^="characterPersonality"]').value.trim(),
+          visualDescription: card.querySelector('textarea[id^="characterVisualDescription"]').value.trim(),
+          imageUrl: card.querySelector('.image-preview img')?.src || ''
+        });
+      });
+      // Gather pages
+      document.querySelectorAll('#pagesContainer .page-container').forEach((page, idx) => {
+        storyContext.pages.push({
+          pageNumber: idx + 1,
+          text: page.querySelector('textarea[id^="pageText"]').value.trim(),
+          illustrationPrompt: page.querySelector('textarea[id^="pageImagePrompt"]').value.trim(),
+          imageUrl: page.querySelector('.uploaded-image')?.src || ''
+        });
+      });
+      return storyContext;
     }
   </script>
 </body>

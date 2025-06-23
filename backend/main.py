@@ -58,6 +58,7 @@ class StoryFoundationRequest(BaseModel):
     coreMessage: Optional[str] = ""
     age: Optional[str] = ""
     tone: Optional[str] = ""
+    story_context: Optional[dict] = None
 
 class ImageGenerationRequest(BaseModel):
     prompt: str
@@ -375,14 +376,35 @@ async def gpt_generate_story_foundation(req: StoryFoundationRequest):
 
     try:
         user_prompts = []
-        if req.title:
-            user_prompts.append(f"The story title is '{req.title}'.")
-        if req.coreMessage:
-            user_prompts.append(f"The core message is '{req.coreMessage}'.")
-        if req.age:
-            user_prompts.append(f"The target age is {req.age}.")
-        if req.tone:
-            user_prompts.append(f"The tone should be {req.tone}.")
+        # Use story_context if provided
+        if req.story_context:
+            ctx = req.story_context
+            if ctx.get('title'):
+                user_prompts.append(f"The story title is '{ctx['title']}'.")
+            if ctx.get('coreMessage'):
+                user_prompts.append(f"The core message is '{ctx['coreMessage']}'.")
+            if ctx.get('age'):
+                user_prompts.append(f"The target age is {ctx['age']}.")
+            if ctx.get('storyTone'):
+                user_prompts.append(f"The tone should be {ctx['storyTone']}.")
+            if ctx.get('characters'):
+                char_descriptions = []
+                for char in ctx['characters']:
+                    desc = f"Name: {char.get('name', '')}, Personality: {char.get('personality', '')}, Visual: {char.get('visualDescription', '')}"
+                    char_descriptions.append(desc)
+                if char_descriptions:
+                    user_prompts.append("Characters: " + "; ".join(char_descriptions))
+            if ctx.get('pages'):
+                user_prompts.append(f"The story has {len(ctx['pages'])} pages.")
+        else:
+            if req.title:
+                user_prompts.append(f"The story title is '{req.title}'.")
+            if req.coreMessage:
+                user_prompts.append(f"The core message is '{req.coreMessage}'.")
+            if req.age:
+                user_prompts.append(f"The target age is {req.age}.")
+            if req.tone:
+                user_prompts.append(f"The tone should be {req.tone}.")
 
         if not user_prompts:
             user_prompts.append("The user hasn't provided any details, so create a sweet, simple story idea for a young child.")
@@ -392,7 +414,7 @@ async def gpt_generate_story_foundation(req: StoryFoundationRequest):
         If a field is already provided, either keep it or refine it. If it's empty, generate a creative value for it.
 
         User's input:
-        - {" ".join(user_prompts)}
+        - {' '.join(user_prompts)}
 
         Your task is to return a JSON object with the following fields fully populated: "title", "coreMessage", "outline", "age", "tone".
         The outline should be a simple, 3-5 sentence paragraph describing the story's arc.
