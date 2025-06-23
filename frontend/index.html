@@ -1309,12 +1309,18 @@
       const newPage = document.createElement('div');
       newPage.className = 'page-container';
       newPage.style.position = 'relative';
+      
+      // Check if we have an AI-generated image
+      const hasImage = page && page.illustration_url;
+      const imageContent = hasImage ? 
+        `<img src="${page.illustration_url}" class="uploaded-image" alt="AI-generated illustration">` : 
+        `<span class="image-placeholder-icon">🎨</span>Click to upload image`;
+      
       newPage.innerHTML = `
         <span class="page-number">${pageCount}</span>
         <div class="page-image-section">
-            <div class="image-area" onclick="uploadPageImage(this)">
-              <span class="image-placeholder-icon">🎨</span>
-              Click to upload image
+            <div class="image-area ${hasImage ? 'has-image' : ''}" onclick="uploadPageImage(this)">
+              ${imageContent}
             </div>
             <div class="field-group" style="margin-top: 1rem;">
                 <label class="field-label">Visual Description for AI Image</label>
@@ -1595,7 +1601,8 @@
             addPage({
               page_number: page.page_number,
               text: page.text,
-              illustration_prompt: page.illustration_prompt
+              illustration_prompt: page.illustration_prompt,
+              illustration_url: page.illustration_url
             });
           });
           

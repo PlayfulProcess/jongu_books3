@@ -342,6 +342,22 @@ async def gpt_generate_all_pages(req: AllPagesGenerationRequest):
         
         pages = json.loads(pages_json)
 
+        # Generate images for each page
+        for page in pages:
+            try:
+                image_response = openai.images.generate(
+                    model="dall-e-3",
+                    prompt=f"A cute, simple, and colorful children's book illustration of: {page['illustration_prompt']}. The style should be gentle and heartwarming, suitable for young children, with soft colors and clean lines.",
+                    n=1,
+                    size="1024x1024",
+                    response_format="url"
+                )
+                page['illustration_url'] = image_response.data[0].url
+                print(f"Generated image for page {page['page_number']}")
+            except Exception as e:
+                print(f"Failed to generate image for page {page['page_number']}: {e}")
+                page['illustration_url'] = None
+
         return {
             "success": True,
             "data": pages
