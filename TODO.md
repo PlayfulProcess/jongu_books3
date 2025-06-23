@@ -2,12 +2,14 @@
 
 ## 🧹 Clean Up
 - [x] Clean up the export buttons (PDF, eBook, Share Online) that are not working or are placeholders.
+- [ ] Enable and use version control (git) locally for better tracking of changes and collaboration.
 
 ## 🤖 AI Improvements
 - [x] When generating characters with AI, prompt the user to create an initial story description if they haven't provided one yet.
 - [x] Pass the full story context object to all AI calls in the backend (for richer, context-aware generation).
 - [ ] Try to create image consistency across the pages (e.g., by passing a style or character description to each image prompt, or using a seed if supported).
 - [ ] Implement multi-turn image editing using OpenAI's new multi-turn editing API (for refining images across multiple turns).
+- [ ] Make all AI context fields optional and allow AI calls to proceed even with missing context (start with 'Use AI to Create Characters').
 
 ## 🧠 AI Context Awareness & Smart Fallbacks
 - [ ] When user prompts AI without sufficient context (e.g., empty story title/message), AI should intelligently create context or ask clarifying questions

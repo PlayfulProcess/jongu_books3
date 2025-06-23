@@ -1029,6 +1029,9 @@
         <button class="button" onclick="generatePages(event)">
           🤖 Use AI to Create All Pages
         </button>
+        <button class="button button-secondary" onclick="recreateAllImages(event)">
+          🎨 Recreate All Images
+        </button>
       </div>
       <div id="pagesContainer">
         <div class="page-container" style="position: relative;">
@@ -1365,7 +1368,40 @@
     }
 
     async function generatePageImage(button) {
-      showToast("AI image generation for pages coming soon!");
+      const pageContainer = button.closest('.page-container');
+      const pageNumber = parseInt(pageContainer.querySelector('.page-number').textContent);
+      const storyContext = getStoryContext();
+
+      button.disabled = true;
+      button.textContent = '🎨 Creating...';
+      showToast('Generating image with full story context. This may take a while...');
+
+      try {
+        const response = await fetch('/api/gpt/generate_page_image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            story_context: storyContext,
+            page_number: pageNumber
+          })
+        });
+        const result = await response.json();
+        if (result.success && result.data.url) {
+          // Display the image in the image-area
+          const imageArea = pageContainer.querySelector('.image-area');
+          imageArea.innerHTML = `<img src="${result.data.url}" class="uploaded-image" alt="AI-generated page illustration">`;
+          imageArea.classList.add('has-image');
+          showToast('AI image created successfully!');
+        } else {
+          throw new Error(result.detail || 'Failed to generate image.');
+        }
+      } catch (error) {
+        console.error('Error generating page image:', error);
+        showToast('Error: Could not generate the image.');
+      } finally {
+        button.disabled = false;
+        button.textContent = '🎨 Use AI to Create Image';
+      }
     }
 
     async function generatePageText(button) {
@@ -1519,10 +1555,6 @@
 
         try {
             const storyContext = getStoryContext();
-            if (!storyContext.title || !storyContext.coreMessage) {
-                showToast('Please provide a title and core message first.');
-                return;
-            }
             const response = await fetch('/api/gpt/generate_characters', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1611,6 +1643,44 @@
         button.disabled = false;
         button.textContent = '🤖 Use AI to Create All Pages';
       }
+    }
+
+    async function recreateAllImages(event) {
+      event.preventDefault();
+      const button = event.currentTarget;
+      button.disabled = true;
+      button.textContent = '🎨 Recreating images...';
+      showToast('Regenerating all images with full story context. This may take a while...');
+      const storyContext = getStoryContext();
+      const pageContainers = document.querySelectorAll('#pagesContainer .page-container');
+      for (let i = 0; i < pageContainers.length; i++) {
+        const pageContainer = pageContainers[i];
+        const pageNumber = i + 1;
+        try {
+          const response = await fetch('/api/gpt/generate_page_image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              story_context: storyContext,
+              page_number: pageNumber
+            })
+          });
+          const result = await response.json();
+          if (result.success && result.data.url) {
+            const imageArea = pageContainer.querySelector('.image-area');
+            imageArea.innerHTML = `<img src="${result.data.url}" class="uploaded-image" alt="AI-generated page illustration">`;
+            imageArea.classList.add('has-image');
+          } else {
+            throw new Error(result.detail || 'Failed to generate image.');
+          }
+        } catch (error) {
+          console.error('Error generating image for page', pageNumber, error);
+          showToast(`Error: Could not generate image for page ${pageNumber}.`);
+        }
+      }
+      button.disabled = false;
+      button.textContent = '🎨 Recreate All Images';
+      showToast('All images have been recreated!');
     }
 
     // --- AI Chat ---
