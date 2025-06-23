@@ -52,6 +52,7 @@ class StoryGenerationRequest(BaseModel):
     coreMessage: str
     age: str
     tone: str
+    story_context: Optional[dict] = None
 
 class StoryFoundationRequest(BaseModel):
     title: Optional[str] = ""
@@ -88,6 +89,7 @@ class PageTextGenerationRequest(BaseModel):
     page_number: int
     total_pages: Optional[int]
     previous_text: Optional[str] = None
+    story_context: Optional[dict] = None
 
 class AllPagesGenerationRequest(BaseModel):
     story_title: str
@@ -95,6 +97,7 @@ class AllPagesGenerationRequest(BaseModel):
     total_pages: Optional[int] = 12
     age: Optional[str] = "4-6 years"
     tone: Optional[str] = "Gentle & Nurturing"
+    story_context: Optional[dict] = None
 
 # In-memory storage (replace with PostgreSQL later)
 stories = {}
@@ -176,25 +179,58 @@ async def gpt_generate_characters(req: StoryGenerationRequest):
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
 
     try:
-        prompt = f"""
-        Based on the following children's story idea, generate 3 distinct and creative characters.
-        For each character, provide a name, type, and personality.
-        The output should be a clean JSON array.
+        # Use story_context if provided
+        if req.story_context:
+            ctx = req.story_context
+            prompt_parts = []
+            if ctx.get('title'):
+                prompt_parts.append(f"Story Title: '{ctx['title']}'")
+            if ctx.get('coreMessage'):
+                prompt_parts.append(f"Core Message: '{ctx['coreMessage']}'")
+            if ctx.get('age'):
+                prompt_parts.append(f"Target Age: {ctx['age']}")
+            if ctx.get('storyTone'):
+                prompt_parts.append(f"Tone: {ctx['storyTone']}")
+            if ctx.get('outline'):
+                prompt_parts.append(f"Outline: {ctx['outline']}")
+            if ctx.get('pages'):
+                prompt_parts.append(f"The story has {len(ctx['pages'])} pages.")
+            prompt = f"""
+            Based on the following children's story idea, generate 3 distinct and creative characters.
+            For each character, provide a name, type, and personality.
+            The output should be a clean JSON array.
 
-        Story Title: "{req.title}"
-        Core Message: "{req.coreMessage}"
-        Target Age: {req.age}
-        Tone: {req.tone}
+            {' '.join(prompt_parts)}
 
-        JSON output format:
-        [
-            {{
-                "name": "Character Name",
-                "type": "Character Type (e.g., Brave knight, Curious fox)",
-                "personality": "Personality traits (e.g., Adventurous and kind)"
-            }}
-        ]
-        """
+            JSON output format:
+            [
+                {{
+                    "name": "Character Name",
+                    "type": "Character Type (e.g., Brave knight, Curious fox)",
+                    "personality": "Personality traits (e.g., Adventurous and kind)"
+                }}
+            ]
+            """
+        else:
+            prompt = f"""
+            Based on the following children's story idea, generate 3 distinct and creative characters.
+            For each character, provide a name, type, and personality.
+            The output should be a clean JSON array.
+
+            Story Title: "{req.title}"
+            Core Message: "{req.coreMessage}"
+            Target Age: {req.age}
+            Tone: {req.tone}
+
+            JSON output format:
+            [
+                {{
+                    "name": "Character Name",
+                    "type": "Character Type (e.g., Brave knight, Curious fox)",
+                    "personality": "Personality traits (e.g., Adventurous and kind)"
+                }}
+            ]
+            """
 
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -238,26 +274,45 @@ async def gpt_generate_page_text(req: PageTextGenerationRequest):
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
 
     try:
-        # Construct a more detailed prompt
-        prompt_context = [
-            f"Story Title: \"{req.story_title}\"",
-            f"Core Message: \"{req.core_message}\"",
-            f"This is for page {req.page_number} of roughly {req.total_pages or '12'} pages."
-        ]
-        if req.previous_text:
-            prompt_context.append(f"The text of the previous page was: \"{req.previous_text}\"")
-
-        prompt = f"""
-        You are a gentle and creative author of children's books.
-        Based on the following story details, write the text for the current page.
-        Keep the language simple, engaging, and appropriate for a young child (4-6 years old).
-        The text should be a short paragraph, around 2-4 sentences.
-
-        Context:
-        - {" ".join(prompt_context)}
-
-        Generate only the text for the current page.
-        """
+        # Use story_context if provided
+        if req.story_context:
+            ctx = req.story_context
+            prompt_parts = []
+            if ctx.get('title'):
+                prompt_parts.append(f"Story Title: '{ctx['title']}'")
+            if ctx.get('coreMessage'):
+                prompt_parts.append(f"Core Message: '{ctx['coreMessage']}'")
+            if ctx.get('storyTone'):
+                prompt_parts.append(f"Tone: {ctx['storyTone']}")
+            if ctx.get('targetAge'):
+                prompt_parts.append(f"Target Age: {ctx['targetAge']}")
+            if ctx.get('outline'):
+                prompt_parts.append(f"Outline: {ctx['outline']}")
+            if ctx.get('characters'):
+                char_descriptions = []
+                for char in ctx['characters']:
+                    desc = f"Name: {char.get('name', '')}, Personality: {char.get('personality', '')}, Visual: {char.get('visualDescription', '')}"
+                    char_descriptions.append(desc)
+                if char_descriptions:
+                    prompt_parts.append("Characters: " + "; ".join(char_descriptions))
+            if ctx.get('pages'):
+                prompt_parts.append(f"The story has {len(ctx['pages'])} pages.")
+            if req.page_number:
+                prompt_parts.append(f"This is for page {req.page_number} of roughly {ctx.get('totalPages', ctx.get('pages') and len(ctx['pages']) or 12)} pages.")
+            if req.previous_text:
+                prompt_parts.append(f"The text of the previous page was: '{req.previous_text}'")
+            prompt = f"""
+            You are a gentle and creative author of children's books.\nBased on the following story details, write the text for the current page.\nKeep the language simple, engaging, and appropriate for a young child ({ctx.get('targetAge', '4-6 years')}).\nThe text should be a short paragraph, around 2-4 sentences.\n\nContext:\n- {' '.join(prompt_parts)}\n\nGenerate only the text for the current page.\n"""
+        else:
+            prompt_context = [
+                f"Story Title: \"{req.story_title}\"",
+                f"Core Message: \"{req.core_message}\"",
+                f"This is for page {req.page_number} of roughly {req.total_pages or '12'} pages."
+            ]
+            if req.previous_text:
+                prompt_context.append(f"The text of the previous page was: \"{req.previous_text}\"")
+            prompt = f"""
+            You are a gentle and creative author of children's books.\nBased on the following story details, write the text for the current page.\nKeep the language simple, engaging, and appropriate for a young child (4-6 years old).\nThe text should be a short paragraph, around 2-4 sentences.\n\nContext:\n- {' '.join(prompt_context)}\n\nGenerate only the text for the current page.\n"""
 
         response = openai.chat.completions.create(
             model="gpt-4o",
@@ -286,36 +341,86 @@ async def gpt_generate_all_pages(req: AllPagesGenerationRequest):
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
 
     try:
-        prompt = f"""
-        You are a gentle and creative author of children's books.
-        Based on the following story details, create a complete story with {req.total_pages} pages.
-        Each page should have engaging text appropriate for {req.age} children with a {req.tone} tone.
+        # Use story_context if provided
+        if req.story_context:
+            ctx = req.story_context
+            prompt_parts = []
+            if ctx.get('title'):
+                prompt_parts.append(f"Story Title: '{ctx['title']}'")
+            if ctx.get('coreMessage'):
+                prompt_parts.append(f"Core Message: '{ctx['coreMessage']}'")
+            if ctx.get('age'):
+                prompt_parts.append(f"Target Age: {ctx['age']}")
+            if ctx.get('storyTone'):
+                prompt_parts.append(f"Tone: {ctx['storyTone']}")
+            if ctx.get('outline'):
+                prompt_parts.append(f"Outline: {ctx['outline']}")
+            if ctx.get('characters'):
+                char_descriptions = []
+                for char in ctx['characters']:
+                    desc = f"Name: {char.get('name', '')}, Personality: {char.get('personality', '')}, Visual: {char.get('visualDescription', '')}"
+                    char_descriptions.append(desc)
+                if char_descriptions:
+                    prompt_parts.append("Characters: " + "; ".join(char_descriptions))
+            if ctx.get('pages'):
+                prompt_parts.append(f"The story has {len(ctx['pages'])} pages.")
+            prompt = f"""
+            You are a gentle and creative author of children's books.
+            Based on the following story details, create a complete story with {ctx.get('totalPages', 12)} pages.
+            Each page should have engaging text appropriate for {ctx.get('targetAge', '4-6 years')} children with a {ctx.get('storyTone', 'Gentle & Nurturing')} tone.
 
-        Story Title: "{req.story_title}"
-        Core Message: "{req.core_message}"
-        Target Age: {req.age}
-        Tone: {req.tone}
-        Number of Pages: {req.total_pages}
+            {' '.join(prompt_parts)}
 
-        Generate a JSON array with {req.total_pages} pages. Each page should have:
-        - page_number: the page number (1, 2, 3, etc.)
-        - text: 2-4 sentences of engaging story text
-        - illustration_prompt: a brief description for creating an illustration
+            Generate a JSON array with {ctx.get('totalPages', 12)} pages. Each page should have:
+            - page_number: the page number (1, 2, 3, etc.)
+            - text: 2-4 sentences of engaging story text
+            - illustration_prompt: a brief description for creating an illustration
 
-        JSON output format:
-        [
-            {{
-                "page_number": 1,
-                "text": "Once upon a time...",
-                "illustration_prompt": "A cozy scene showing..."
-            }},
-            {{
-                "page_number": 2,
-                "text": "The next day...",
-                "illustration_prompt": "A bright morning scene..."
-            }}
-        ]
-        """
+            JSON output format:
+            [
+                {{
+                    "page_number": 1,
+                    "text": "Once upon a time...",
+                    "illustration_prompt": "A cozy scene showing..."
+                }},
+                {{
+                    "page_number": 2,
+                    "text": "The next day...",
+                    "illustration_prompt": "A bright morning scene..."
+                }}
+            ]
+            """
+        else:
+            prompt = f"""
+            You are a gentle and creative author of children's books.
+            Based on the following story details, create a complete story with {req.total_pages} pages.
+            Each page should have engaging text appropriate for {req.age} children with a {req.tone} tone.
+
+            Story Title: "{req.story_title}"
+            Core Message: "{req.core_message}"
+            Target Age: {req.age}
+            Tone: {req.tone}
+            Number of Pages: {req.total_pages}
+
+            Generate a JSON array with {req.total_pages} pages. Each page should have:
+            - page_number: the page number (1, 2, 3, etc.)
+            - text: 2-4 sentences of engaging story text
+            - illustration_prompt: a brief description for creating an illustration
+
+            JSON output format:
+            [
+                {{
+                    "page_number": 1,
+                    "text": "Once upon a time...",
+                    "illustration_prompt": "A cozy scene showing..."
+                }},
+                {{
+                    "page_number": 2,
+                    "text": "The next day...",
+                    "illustration_prompt": "A bright morning scene..."
+                }}
+            ]
+            """
 
         response = openai.chat.completions.create(
             model="gpt-4o",

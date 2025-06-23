@@ -912,6 +912,9 @@
         <p style="color: #718096; font-size: 0.95rem; margin-top: 1rem;">
           <strong>Not into AI? I get it!</strong> Some days I wake up feeling the same way. JonguBooks works beautifully as a pure creative tool - write your own stories, draw your own illustrations, or use photos. The AI is just an option, not a requirement. Your imagination is the only tool you truly need. 💚
         </p>
+        <p style="color: #b7791f; font-size: 0.95rem; margin-top: 1rem;">
+          <strong>Note:</strong> AI generation (especially with full story context) can sometimes take a while. Please be patient while the magic happens!
+        </p>
         <div class="button-group" style="justify-content: center; margin-top: 1.5rem;">
           <button class="button" onclick="window.open('https://chatgpt.com/g/g-68582fc3c3f481919db280da20d31639-jongubooks-assistant', '_blank')">
             🤖 Open JonguBooks GPT+ (Free)
@@ -1381,12 +1384,14 @@
         }
       }
 
+      const storyContext = getStoryContext();
       const requestBody = {
         story_title: document.getElementById('storyTitle').value,
         core_message: document.getElementById('coreMessage').value,
         page_number: pageNumber,
         total_pages: parseInt(document.getElementById('totalPages').value) || 12,
         previous_text: previousPageText,
+        story_context: storyContext
       };
 
       if (!requestBody.story_title || !requestBody.core_message) {
@@ -1513,22 +1518,15 @@
         button.textContent = '🤖 Thinking...';
 
         try {
-            const storyDetails = {
-                title: document.getElementById('storyTitle').value,
-                coreMessage: document.getElementById('coreMessage').value,
-                age: document.getElementById('targetAge').value,
-                tone: document.getElementById('storyTone').value
-            };
-
-            if (!storyDetails.title || !storyDetails.coreMessage) {
+            const storyContext = getStoryContext();
+            if (!storyContext.title || !storyContext.coreMessage) {
                 showToast('Please provide a title and core message first.');
                 return;
             }
-
             const response = await fetch('/api/gpt/generate_characters', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(storyDetails)
+                body: JSON.stringify({ story_context: storyContext })
             });
 
             const result = await response.json();
@@ -1564,23 +1562,19 @@
       button.textContent = '🤖 Creating all pages...';
 
       try {
-        const storyDetails = {
-          story_title: document.getElementById('storyTitle').value,
-          core_message: document.getElementById('coreMessage').value,
-          total_pages: parseInt(document.getElementById('totalPages').value) || 12,
-          age: document.getElementById('targetAge').value,
-          tone: document.getElementById('storyTone').value
-        };
-
-        if (!storyDetails.story_title || !storyDetails.core_message) {
+        const storyContext = getStoryContext();
+        if (!storyContext.title || !storyContext.coreMessage) {
           showToast('Please provide a title and core message in Step 1 first.');
           return;
         }
-
         const response = await fetch('/api/gpt/generate_all_pages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(storyDetails)
+          body: JSON.stringify({ 
+            story_title: storyContext.title,
+            core_message: storyContext.coreMessage,
+            story_context: storyContext 
+          })
         });
 
         const result = await response.json();
