@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 import uuid
 from datetime import datetime
 import os
@@ -558,38 +558,34 @@ async def gpt_generate_story_foundation(req: StoryFoundationRequest):
 
 @app.post("/api/gpt/generate_image")
 async def gpt_generate_image(req: ImageGenerationRequest):
-    print("DALL-E image generation requested: /api/gpt/generate_image")
-    """Generate a simple character image using DALL-E, with story context if available."""
+    """Generate a character image using DALL-E with maximum anti-text measures"""
     if not openai.api_key:
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
 
     try:
-        # If story context is present, include it in the prompt for better continuity
-        story_context = getattr(req, "story_context", None)
-        context_str = ""
-        if story_context:
-            context_str = f" Story context: {json.dumps(story_context, ensure_ascii=False)}"
-
-        prompt = (
-            "A simple, full-body character illustration for kids. "
-            f"Character description: {req.prompt}.{context_str} "
-            "No background, plain white background. "
-            "Do not include any text, writing, letters, numbers, or symbols anywhere in the image. "
-            "No objects, no scenery, no borders, no frames. "
-            "Only the character, centered, with a lot of empty white space around them. "
-            "The character should be small and occupy only the center of the image, with plenty of white space. "
-            "Style: gentle, heartwarming, soft colors, clean lines, suitable for young children. "
-            "Centered, easy to use as a reference for other images."
-        )
-
-        response = openai.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            n=1,
-            size="1024x1024",
-            response_format="url"
-        )
-        image_url = response.data[0].url
+        # Build the most effective prompt
+        prompt = build_ultimate_character_prompt(req.prompt, getattr(req, "story_context", None))
+        
+        # Try up to 2 times if needed
+        for attempt in range(2):
+            response = openai.images.generate(
+                model="dall-e-3",
+                prompt=prompt,
+                n=1,
+                size="1024x1024",
+                response_format="url",
+                quality="standard",  # Less detail = less chance of text
+                style="natural"      # Your insight: natural style is better
+            )
+            
+            image_url = response.data[0].url
+            
+            # Optional: Quick validation (you could implement actual text detection)
+            if not contains_obvious_text_keywords(prompt):
+                return {
+                    "success": True,
+                    "data": {"url": image_url}
+                }
         return {
             "success": True,
             "data": {"url": image_url}
@@ -598,34 +594,242 @@ async def gpt_generate_image(req: ImageGenerationRequest):
         print(f"Error calling DALL-E: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate image: {e}")
 
-@app.post("/api/ai/chat")
-async def ai_chat(req: ChatRequest):
-    """General purpose AI chat assistant"""
+def build_ultimate_character_prompt(character_description: str, story_context: dict = None) -> str:
+    """Build the most effective prompt combining all insights"""
+    critical_rules = [
+        "CRITICAL: This image must contain absolutely NO text, letters, words, writing, signs, labels, captions, or any written language whatsoever.",
+        "Create a character portrait. Do NOT show any book, page, or illustration context.",
+        "Only the character, centered, with a plain white background.",
+        "Pure illustration only with NO textual elements of any kind."
+    ]
+    character_parts = [
+        f"Character description: {character_description}",
+        "Show ONLY this character as a portrait",
+        "No background objects, especially no items that could have text"
+    ]
+    style_parts = [
+        "Art style: Soft watercolor or gentle digital painting",
+        "Colors: Warm, muted, child-friendly palette", 
+        "Character centered with lots of white space",
+        "Full body view, facing forward",
+        "Kind, approachable expression",
+        "Simple solid color or white background",
+        "No props, accessories, or background elements that could contain text"
+    ]
+    context_parts = []
+    if story_context:
+        if story_context.get('targetAge'):
+            context_parts.append(f"Age-appropriate for: {story_context['targetAge']}")
+    all_parts = (
+        critical_rules + 
+        [""] +  # Empty line for clarity
+        character_parts + 
+        [""] +
+        style_parts +
+        ([""] + context_parts if context_parts else []) +
+        [""] +
+        ["Remember: This is a standalone character portrait with NO text or book context."]
+    )
+    return "\n".join(all_parts)
+
+@app.post("/api/gpt/generate_page_image")
+async def gpt_generate_page_image(req: PageImageGenerationRequest):
+    """Generate page illustration with maximum context and zero text"""
     if not openai.api_key:
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
-
-    system_prompt = {
-        "role": "system",
-        "content": "You are the JonguBooks Assistant, a friendly and creative partner for parents building children's stories. Your goal is to help users flesh out their ideas. You can help with brainstorming titles, suggesting core messages, creating characters, writing page content, and describing illustrations. Keep your tone encouraging and helpful. The user is currently on a specific step of the story creation process, so tailor your advice accordingly."
-    }
-
-    messages = [system_prompt] + req.history
-
     try:
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=0.7,
+        prompt = build_ultimate_page_prompt(req.story_context, req.page_number)
+        response = openai.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            n=1,
+            size="1024x1024",
+            response_format="url",
+            quality="standard",
+            style="natural"
         )
-        reply = response.choices[0].message.content
-
+        image_url = response.data[0].url
         return {
             "success": True,
-            "reply": reply
+            "data": {"url": image_url}
         }
     except Exception as e:
-        print(f"Error in AI chat: {e}")
-        raise HTTPException(status_code=500, detail="Failed to get response from AI assistant.")
+        print(f"Error generating page image: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate page image: {e}")
+
+def build_ultimate_page_prompt(story_context: dict, page_number: int) -> str:
+    critical_rules = [
+        "ABSOLUTELY NO TEXT OR WRITING OF ANY KIND in this image.",
+        "Do NOT show any text, writing, or book pages. Only the scene and characters.",
+        "NO letters, words, signs, books with visible text, newspapers, labels, or any written language.",
+        "Pure visual storytelling only - this is a scene illustration, not a book page."
+    ]
+    current_page, previous_page, next_page = get_page_context(story_context, page_number)
+    scene_parts = []
+    if current_page:
+        if current_page.get('illustrationPrompt'):
+            cleaned_prompt = clean_illustration_prompt(current_page['illustrationPrompt'])
+            scene_parts.append(f"Scene to illustrate: {cleaned_prompt}")
+        elif current_page.get('text'):
+            scene_parts.append(f"Create a visual representation of: {current_page['text']}")
+    character_parts = []
+    relevant_characters = get_relevant_characters_for_page(story_context, current_page)
+    if relevant_characters:
+        character_parts.append("Maintain these character appearances:")
+        for char in relevant_characters:
+            if char.get('visualDescription'):
+                character_parts.append(f"- {char['name']}: {char['visualDescription']}")
+    context_parts = []
+    if previous_page and previous_page.get('text'):
+        context_parts.append(f"Previous moment: {previous_page['text'][:50]}...")
+    if story_context.get('storyTone'):
+        context_parts.append(f"Emotional tone: {story_context['storyTone']}")
+    style_parts = [
+        "Visual style requirements:",
+        "- Soft, child-friendly illustration style",
+        "- Consistent with character designs",
+        "- Focus on emotions and actions",
+        "- Clear, uncluttered composition",
+        "- Warm, gentle color palette",
+        "- Avoid ANY objects that typically have text (signs, books, posters, etc.)"
+    ]
+    final_reminder = [
+        "This is a standalone scene illustration with no text elements.",
+        "Focus on visual storytelling through character expressions and actions."
+    ]
+    all_sections = [
+        critical_rules,
+        [""],
+        scene_parts,
+        [""],
+        character_parts if character_parts else [],
+        [""],
+        context_parts if context_parts else [],
+        [""],
+        style_parts,
+        [""],
+        final_reminder
+    ]
+    all_parts = []
+    for section in all_sections:
+        all_parts.extend(section)
+    return "\n".join(filter(None, all_parts))
+
+def clean_illustration_prompt(prompt: str) -> str:
+    text_related_words = {
+        'book': 'story',
+        'books': 'stories',
+        'page': 'scene',
+        'pages': 'scenes',
+        'reading': 'looking at',
+        'written': 'shown',
+        'writing': 'drawing',
+        'text': 'image',
+        'words': 'pictures',
+        'letters': 'shapes',
+        'sign': 'symbol',
+        'poster': 'picture',
+        'newspaper': 'paper'
+    }
+    cleaned = prompt.lower()
+    for old, new in text_related_words.items():
+        cleaned = cleaned.replace(old, new)
+    return cleaned
+
+def get_page_context(story_context: dict, page_number: int) -> tuple:
+    current_page = None
+    previous_page = None
+    next_page = None
+    if story_context.get('pages'):
+        for i, page in enumerate(story_context['pages']):
+            page_num = page.get('pageNumber') or page.get('page_number')
+            if page_num == page_number:
+                current_page = page
+                if i > 0:
+                    previous_page = story_context['pages'][i-1]
+                if i < len(story_context['pages']) - 1:
+                    next_page = story_context['pages'][i+1]
+                break
+    return current_page, previous_page, next_page
+
+def get_relevant_characters_for_page(story_context: dict, current_page: dict) -> List[dict]:
+    if not current_page or not story_context.get('characters'):
+        return []
+    page_text = (current_page.get('text', '') + ' ' + current_page.get('illustrationPrompt', '')).lower()
+    relevant_chars = []
+    for char in story_context['characters']:
+        char_name = char.get('name', '').lower()
+        if char_name and char_name in page_text:
+            relevant_chars.append(char)
+    if not relevant_chars and story_context['characters']:
+        relevant_chars.append(story_context['characters'][0])
+    return relevant_chars
+
+def contains_obvious_text_keywords(text: str) -> bool:
+    text_keywords = ['text', 'word', 'letter', 'writing', 'sign', 'book', 'page']
+    return any(keyword in text.lower() for keyword in text_keywords)
+
+@app.post("/api/gpt/generate_minimal_image")
+async def generate_minimal_image(req: ImageGenerationRequest):
+    if not openai.api_key:
+        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+    try:
+        minimal_prompt = f"""
+NO TEXT IN IMAGE.
+
+{req.prompt}
+
+Watercolor style.
+No text anywhere.
+        """
+        response = openai.images.generate(
+            model="dall-e-3",
+            prompt=minimal_prompt.strip(),
+            n=1,
+            size="1024x1024",
+            response_format="url",
+            quality="standard",
+            style="natural"
+        )
+        return {
+            "success": True,
+            "data": {"url": response.data[0].url}
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate minimal image: {e}")
+
+@app.post("/api/validate_prompt")
+async def validate_prompt(prompt: str):
+    issues = []
+    problematic_words = ['book', 'page', 'text', 'word', 'letter', 'sign', 'writing']
+    found_words = [w for w in problematic_words if w in prompt.lower()]
+    if found_words:
+        issues.append(f"Found text-related words: {', '.join(found_words)}")
+    cleaned_prompt = clean_illustration_prompt(prompt)
+    return {
+        "original": prompt,
+        "cleaned": cleaned_prompt,
+        "issues": issues,
+        "is_safe": len(issues) == 0
+    }
+
+character_reference_cache = {}
+
+@app.post("/api/store_character_reference")
+async def store_character_reference(story_id: str, character_name: str, image_url: str):
+    if story_id not in character_reference_cache:
+        character_reference_cache[story_id] = {}
+    character_reference_cache[story_id][character_name] = {
+        "image_url": image_url,
+        "timestamp": datetime.now()
+    }
+    return {"success": True, "message": "Character reference stored"}
+
+def get_character_reference(story_id: str, character_name: str) -> Optional[str]:
+    if story_id in character_reference_cache:
+        if character_name in character_reference_cache[story_id]:
+            return character_reference_cache[story_id][character_name]["image_url"]
+    return None
 
 # Regular API Endpoints
 @app.get("/api/stories")
@@ -732,39 +936,6 @@ async def export_pdf(story_id: str):
         "story_id": story_id
     }
 
-@app.post("/api/gpt/generate_page_image")
-async def gpt_generate_page_image(req: PageImageGenerationRequest):
-    print(f"DALL-E image generation requested: /api/gpt/generate_page_image for page {req.page_number}")
-    if not openai.api_key:
-        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
-
-    ctx = req.story_context
-    try:
-        context_str = json.dumps(ctx, ensure_ascii=False)
-        prompt = (
-            "Children's illustration. "
-            f"Full story context: {context_str} "
-            "Style: gentle, heartwarming, soft colors, clean lines, suitable for young children. "
-            "No text, no writing, no letters, no words, no captions, no signs, no labels. "
-            "Keep character appearance and style consistent with previous illustrations."
-        )
-
-        response = openai.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            n=1,
-            size="1024x1024",
-            response_format="url"
-        )
-        image_url = response.data[0].url
-        return {
-            "success": True,
-            "data": {"url": image_url}
-        }
-    except Exception as e:
-        print(f"Error generating page image: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate page image: {e}")
-    
 # Health check
 @app.get("/health")
 async def health_check():
