@@ -2,6 +2,8 @@
 
 A beautiful web application for parents to create personalized children's books with custom characters and meaningful lessons.
 
+Not working veryy well in the free version of render and potential to optimize image generation, but can be visualized here: https://jongu-books3.onrender.com/
+
 ## 🎯 Vision
 
 **Short Term**: Launch a beautiful, simple tool where parents can craft personalized children's books - with or without AI assistance.
